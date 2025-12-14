@@ -10,7 +10,7 @@ export function Footer() {
   return (
     <footer id="contact" className="w-full bg-background border-t-2 border-primary/20 py-20">
       <div className="container mx-auto px-4 text-center flex flex-col items-center gap-8">
-        <Logo className="w-56 h-28" />
+        <Logo className="w-32" />
         <div className="max-w-2xl">
             <h2 className="font-headline text-4xl md:text-5xl mb-4">
             Ready to modernize your operations?
