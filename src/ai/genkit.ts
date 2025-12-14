@@ -1,6 +1,10 @@
-import {genkit} from 'genkit';
+import {genkit, configureGenkit} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
+import {genkitEval, GenkitMetric} from '@genkit-ai/evaluator';
 import nextPlugin from '@genkit-ai/next';
+import { config } from 'dotenv';
+
+config();
 
 export const ai = genkit({
   plugins: [

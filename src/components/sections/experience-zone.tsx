@@ -15,9 +15,9 @@ export function ExperienceZoneSection() {
           </p>
         </div>
 
-        <Tabs defaultValue="text" className="w-full max-w-4xl mx-auto">
+        <Tabs defaultValue="voice" className="w-full max-w-4xl mx-auto">
           <TabsList className="grid w-full grid-cols-2 h-14 p-2 bg-background/80 border border-primary/20">
-            <TabsTrigger value="text" className="text-lg h-full data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="text" className="text-lg h-full data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground" disabled>
               TEXT TERMINAL (Gemini)
             </TabsTrigger>
             <TabsTrigger value="voice" className="text-lg h-full data-[state=active]:bg-cyan-600/80 data-[state=active]:text-white">

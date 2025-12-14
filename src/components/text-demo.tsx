@@ -3,10 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { streamFlow } from "@genkit-ai/next/client";
+// import { streamFlow } from "@genkit-ai/next/streaming";
 import { Bot, User, CornerDownLeft } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { askWebsite, WebsiteQAOutput } from "@/ai/flows/website-qa-flow";
+// import { askWebsite, WebsiteQAOutput } from "@/ai/flows/website-qa-flow";
 
 type Message = {
   role: "user" | "bot";
@@ -37,45 +37,47 @@ export function TextDemo() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    // AI functionality is temporarily disabled.
+    return;
+    // if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", message: input };
-    setMessages(prev => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
+    // const userMessage: Message = { role: "user", message: input };
+    // setMessages(prev => [...prev, userMessage]);
+    // setInput("");
+    // setIsLoading(true);
 
-    const botMessage: Message = { role: "bot", message: "" };
-    setMessages(prev => [...prev, botMessage]);
+    // const botMessage: Message = { role: "bot", message: "" };
+    // setMessages(prev => [...prev, botMessage]);
 
-    try {
-      const stream = await streamFlow(askWebsite, { question: input });
-      for await (const chunk of stream()) {
-        const output = chunk.output as WebsiteQAOutput | undefined;
-        if (output?.answer) {
-          setMessages(prev => {
-            const newMessages = [...prev];
-            const lastMessage = newMessages[newMessages.length - 1];
-            if (lastMessage.role === "bot") {
-              lastMessage.message = output.answer;
-            }
-            return newMessages;
-          });
-        }
-      }
+    // try {
+    //   const {stream} = streamFlow(askWebsite, { question: input });
+    //   for await (const chunk of stream) {
+    //     const output = chunk as WebsiteQAOutput | undefined;
+    //     if (output?.answer) {
+    //       setMessages(prev => {
+    //         const newMessages = [...prev];
+    //         const lastMessage = newMessages[newMessages.length - 1];
+    //         if (lastMessage.role === "bot") {
+    //           lastMessage.message = output.answer;
+    //         }
+    //         return newMessages;
+    //       });
+    //     }
+    //   }
 
-    } catch (error) {
-      console.error("Error streaming from AI flow:", error);
-      setMessages(prev => {
-        const newMessages = [...prev];
-        const lastMessage = newMessages[newMessages.length - 1];
-        if (lastMessage.role === "bot") {
-          lastMessage.message = "Sorry, I encountered an error. Please try again.";
-        }
-        return newMessages;
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // } catch (error) {
+    //   console.error("Error streaming from AI flow:", error);
+    //   setMessages(prev => {
+    //     const newMessages = [...prev];
+    //     const lastMessage = newMessages[newMessages.length - 1];
+    //     if (lastMessage.role === "bot") {
+    //       lastMessage.message = "Sorry, I encountered an error. Please try again.";
+    //     }
+    //     return newMessages;
+    //   });
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
   
   return (
@@ -96,7 +98,7 @@ export function TextDemo() {
                 <Bot className="text-primary h-6 w-6" />
                 <div className="flex flex-col">
                     <span className="font-bold text-primary">EIA-7B</span>
-                    <p className="text-muted-foreground">I am an agent trained on the content of this website. Ask me anything about East India Automation.</p>
+                    <p className="text-muted-foreground">Text demo is temporarily unavailable due to a dependency issue. Our engineers are working on it.</p>
                 </div>
               </div>
           )}
@@ -106,11 +108,11 @@ export function TextDemo() {
         <Input
           value={input}
           onChange={handleInputChange}
-          placeholder={isLoading ? "Generating response..." : "Ask a question about East India Automation..."}
+          placeholder="Text demo is currently disabled..."
           className="bg-background/50 border-primary/30 h-12 pr-12 text-base"
-          disabled={isLoading}
+          disabled={true}
         />
-        <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-10" disabled={isLoading}>
+        <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-10" disabled={true}>
           <CornerDownLeft className="h-5 w-5" />
         </Button>
       </form>

@@ -10,8 +10,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@genkit-ai/google-genai": "latest",
-    "@genkit-ai/next": "latest",
     "@hookform/resolvers": "3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -41,16 +39,16 @@
     "dotenv": "^16.4.5",
     "embla-carousel-react": "^8.1.6",
     "firebase": "^10.12.3",
-    "genkit": "latest",
     "gsap": "^3.12.5",
     "lucide-react": "^0.400.0",
     "next": "14.2.6",
     "next-themes": "^0.3.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
+    "react-hook-form": "^7.52.1",
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.4.0",
-    "tailwindcss-animate": "^1.0.7",
+    "tailwindcss-animate": "^1.0.0",
     "three": "^0.166.1",
     "tone": "^15.0.4",
     "zod": "^3.23.8"

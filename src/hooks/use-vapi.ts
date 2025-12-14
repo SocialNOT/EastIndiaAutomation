@@ -14,19 +14,23 @@ export const useVapi = () => {
 
   const vapi = useMemo(() => {
     const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-    if (!publicKey) {
-      console.error("VAPI public key not found in environment variables.");
+    if (!publicKey || publicKey === "your-vapi-public-key-here") {
+      console.warn("VAPI public key not found or is a placeholder. Voice demo will be disabled.");
       return null;
     }
     return new Vapi(publicKey);
   }, []);
   
   const start = useCallback(async () => {
-    if (!vapi) return;
+    if (!vapi) {
+        setCallStatus("ended");
+        console.error("Vapi is not initialized. Please check your VAPI_PUBLIC_KEY.");
+        return;
+    };
     setCallStatus("connecting");
     const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
-    if (!assistantId) {
-        console.error("VAPI assistant ID not found.");
+    if (!assistantId || assistantId === "your-vapi-assistant-id-here") {
+        console.error("VAPI assistant ID not found or is a placeholder. Cannot start call.");
         setCallStatus("ended");
         return;
     }
