@@ -4,7 +4,7 @@ import { liveGeminiDemo } from "@/ai/flows/live-gemini-demo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useFlow } from "@genkit-ai/next/client";
+import { streamFlow } from "@genkit-ai/next/client";
 import { Bot, User } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
@@ -16,33 +16,40 @@ interface Message {
 export function TextDemo() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const { run, streaming, loading, error } = useFlow(liveGeminiDemo);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
-  const running = loading;
-
-  useEffect(() => {
-    if (streaming) {
-      setMessages((prev) => {
-        const newMessages = [...prev];
-        const lastMessage = newMessages[newMessages.length - 1];
-        if (lastMessage?.role === 'bot') {
-          lastMessage.text = streaming.response;
-        }
-        return newMessages;
-      });
-    }
-  }, [streaming]);
-
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || running) return;
+    if (!input.trim() || loading) return;
 
+    setLoading(true);
+    setError(null);
     const userMessage: Message = { role: "user", text: input };
-    setMessages((prev) => [...prev, userMessage, { role: "bot", text: "" }]);
-    run({ query: input });
+    const botMessage: Message = { role: "bot", text: "" };
+    setMessages((prev) => [...prev, userMessage, botMessage]);
+    
+    const currentInput = input;
     setInput("");
+
+    try {
+      const stream = streamFlow(liveGeminiDemo, { query: currentInput });
+      for await (const chunk of stream) {
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage?.role === 'bot') {
+            lastMessage.text = chunk.response;
+          }
+          return newMessages;
+        });
+      }
+    } catch (err: any) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   };
   
   useEffect(() => {
@@ -50,7 +57,7 @@ export function TextDemo() {
     if (viewport) {
       viewport.scrollTop = viewport.scrollHeight;
     }
-  }, [messages, running, streaming]);
+  }, [messages, loading]);
 
 
   return (
@@ -74,7 +81,7 @@ export function TextDemo() {
                     : "bg-secondary"
                 }`}
               >
-                <p className="whitespace-pre-wrap">{msg.text}{msg.role === 'bot' && running && index === messages.length -1 ? '...' : ''}</p>
+                <p className="whitespace-pre-wrap">{msg.text}{msg.role === 'bot' && loading && index === messages.length -1 ? '...' : ''}</p>
               </div>
               {msg.role === "user" && (
                 <User className="h-6 w-6 text-primary shrink-0 mt-1" />
@@ -90,10 +97,10 @@ export function TextDemo() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Query the system..."
           className="bg-background/80 text-base focus-visible:ring-accent"
-          disabled={running}
+          disabled={loading}
         />
-        <Button type="submit" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary-foreground" disabled={running}>
-          {running ? "Processing..." : "Send"}
+        <Button type="submit" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary-foreground" disabled={loading}>
+          {loading ? "Processing..." : "Send"}
         </Button>
       </form>
     </div>
