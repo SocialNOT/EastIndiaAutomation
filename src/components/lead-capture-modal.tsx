@@ -48,7 +48,7 @@ export function LeadCaptureModal() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await addLead(values);
+      addLead(values);
       toast({
         title: "Consultation Requested",
         description: "Thank you! We will be in touch shortly.",
