@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 222 68% 11%; /* #0A192F */
-    --foreground: 210 40% 98%; /* Light grey for text */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    --card: 222 50% 15%; /* Slightly lighter navy */
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 222 68% 9%; /* Darker navy */
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 47 68% 46%; /* #C9A227 Bronze/Gold */
-    --primary-foreground: 222 68% 11%; /* Navy text on bronze buttons */
+    --primary: 47 68% 46%;
+    --primary-foreground: 222 68% 11%;
 
-    --secondary: 222 50% 25%; /* Mid-navy for secondary elements */
-    --secondary-foreground: 47 68% 46%; /* Bronze text on secondary elements */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 222 50% 25%;
-    --muted-foreground: 210 40% 60%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 47 68% 46%; /* #C9A227 Bronze/Gold for active states */
-    --accent-foreground: 222 68% 11%;
+    --accent: 188 80% 50%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 72% 51%; /* A strong red */
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 47 68% 36%; /* Darker Bronze for borders */
-    --input: 222 50% 20%; /* Navy for input backgrounds */
-    --ring: 47 68% 46%; /* Bronze for focus rings */
+    --border: 47 68% 36%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
   }
