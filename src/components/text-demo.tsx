@@ -16,8 +16,25 @@ interface Message {
 export function TextDemo() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const {流: stream, running, error } = useFlow(liveGeminiDemo);
+  const [stream, setStream] = useState<{ chunk: any }[]>([]);
+  
+  const [run, { data, loading, error }] = useFlow(liveGeminiDemo);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
+  const running = loading;
+
+  useEffect(() => {
+    if (!data) return;
+  
+    setMessages((prev) => {
+      const newMessages = [...prev];
+      if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'bot') {
+        newMessages[newMessages.length - 1].text = data.response;
+      }
+      return newMessages;
+    });
+  
+  }, [data]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -25,28 +42,8 @@ export function TextDemo() {
 
     const userMessage: Message = { role: "user", text: input };
     setMessages((prev) => [...prev, userMessage, { role: "bot", text: "" }]);
+    run({ query: input });
     setInput("");
-
-    const streamReader = stream({ query: input }).getReader();
-    const decoder = new TextDecoder();
-
-    let botText = "";
-    while (true) {
-      const { value, done } = await streamReader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-      const chunkData = JSON.parse(chunk);
-
-      if (chunkData.response) {
-        botText += chunkData.response;
-        setMessages((prev) => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1] = { role: "bot", text: botText };
-          return newMessages;
-        });
-      }
-    }
   };
   
   useEffect(() => {
@@ -56,7 +53,7 @@ export function TextDemo() {
             viewport.scrollTop = viewport.scrollHeight;
         }
     }
-  }, [messages]);
+  }, [messages, running]);
 
 
   return (

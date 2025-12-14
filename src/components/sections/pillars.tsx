@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BrainCircuit, Waveform, Server, Cog, ArrowRight } from "lucide-react";
+import { BrainCircuit, Waves, Server, Cog, ArrowRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -19,7 +19,7 @@ const pillarsData: PillarProps[] = [
     description: "Forget dumb menu bots. We deploy multilingual agents (Bengali/Hindi/English) trained on your data that capture qualified leads and inject them directly into your CRM while you sleep.",
   },
   {
-    icon: Waveform,
+    icon: Waves,
     title: "Human-Parity Voice AI",
     description: "Eliminate hold times. Our ultra-low latency voice agents handle inbound calls, schedule appointments, and answer queries over the phone with startling realism.",
   },
