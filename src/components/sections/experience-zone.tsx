@@ -1,8 +1,18 @@
+"use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TextDemo } from "@/components/text-demo";
 import { VoiceDemo } from "@/components/voice-demo";
+import { useEffect, useState } from "react";
+import { Skeleton } from "../ui/skeleton";
 
 export function ExperienceZoneSection() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <section id="experience-zone" className="w-full py-20 md:py-32 bg-card/20">
       <div className="container mx-auto px-4">
@@ -28,7 +38,15 @@ export function ExperienceZoneSection() {
             <TextDemo />
           </TabsContent>
           <TabsContent value="voice" className="mt-6">
-            <VoiceDemo />
+            {isClient ? (
+              <VoiceDemo />
+            ) : (
+              <div className="flex flex-col h-[60vh] items-center justify-center bg-black/50 border border-cyan-400/20 rounded-lg p-4 gap-8">
+                <Skeleton className="w-full h-32" />
+                <Skeleton className="w-64 h-64 rounded-full" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

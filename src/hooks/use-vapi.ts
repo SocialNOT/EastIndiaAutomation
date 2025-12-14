@@ -11,25 +11,32 @@ export const useVapi = () => {
   const [isSpeechActive, setIsSpeechActive] = useState(false);
   const [speaker, setSpeaker] = useState<'user' | 'bot' | null>(null);
   const [analyser, setAnalyser] = useState<Tone.Analyser | null>(null);
-  const [vapi, setVapi] = useState<Vapi | null>(null);
+  const [vapiInstance, setVapiInstance] = useState<Vapi | null>(null);
 
   useEffect(() => {
-    // Initialize Vapi on the client side only
+    // This effect runs only on the client, ensuring Vapi is not imported on the server.
     const initializeVapi = async () => {
       const VapiModule = (await import("@vapi-ai/web")).default;
       const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-      if (!publicKey || publicKey === "your-vapi-public-key-here") {
+      
+      if (publicKey && publicKey !== "your-vapi-public-key-here") {
+        setVapiInstance(new VapiModule(publicKey));
+      } else {
         console.warn("VAPI public key not found or is a placeholder. Voice demo will be disabled.");
         setCallStatus("ended");
-        return;
       }
-      setVapi(new VapiModule(publicKey));
     };
     initializeVapi();
-  }, []);
+
+    // Cleanup function to dispose of the Vapi instance.
+    return () => {
+        vapiInstance?.destroy();
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount.
+
 
   const start = useCallback(async () => {
-    if (!vapi) {
+    if (!vapiInstance) {
         setCallStatus("ended");
         console.error("Vapi is not initialized. Please check your VAPI_PUBLIC_KEY.");
         return;
@@ -46,7 +53,7 @@ export const useVapi = () => {
         await Tone.start();
         const newAnalyser = new Tone.Analyser("waveform", 1024);
 
-        vapi.start(assistantId);
+        vapiInstance.start(assistantId);
 
         // Connect microphone to analyser
         const mic = new Tone.UserMedia();
@@ -54,7 +61,7 @@ export const useVapi = () => {
         mic.connect(newAnalyser);
 
         // Connect assistant audio to analyser
-        const assistantNode = vapi.getAudioNode();
+        const assistantNode = vapiInstance.getAudioNode();
         if (assistantNode) {
             Tone.connect(assistantNode, newAnalyser);
         } else {
@@ -68,16 +75,16 @@ export const useVapi = () => {
         setCallStatus("ended");
     }
 
-  }, [vapi]);
+  }, [vapiInstance]);
 
   const stop = useCallback(() => {
-    if (!vapi) return;
+    if (!vapiInstance) return;
     setCallStatus("ended");
-    vapi.stop();
-  }, [vapi]);
+    vapiInstance.stop();
+  }, [vapiInstance]);
 
   useEffect(() => {
-    if (!vapi) return;
+    if (!vapiInstance) return;
 
     const onCallStart = () => setCallStatus("active");
     const onCallEnd = () => {
@@ -98,20 +105,20 @@ export const useVapi = () => {
       setCallStatus("ended");
     };
 
-    vapi.on("call-start", onCallStart);
-    vapi.on("call-end", onCallEnd);
-    vapi.on("speech-start", onSpeechStart);
-    vapi.on("speech-end", onSpeechEnd);
-    vapi.on("error", onError);
+    vapiInstance.on("call-start", onCallStart);
+    vapiInstance.on("call-end", onCallEnd);
+    vapiInstance.on("speech-start", onSpeechStart);
+    vapiInstance.on("speech-end", onSpeechEnd);
+    vapiInstance.on("error", onError);
 
     return () => {
-      vapi.off("call-start", onCallStart);
-      vapi.off("call-end", onCallEnd);
-      vapi.off("speech-start", onSpeechStart);
-      vapi.off("speech-end", onSpeechEnd);
-      vapi.off("error", onError);
+      vapiInstance.off("call-start", onCallStart);
+      vapiInstance.off("call-end", onCallEnd);
+      vapiInstance.off("speech-start", onSpeechStart);
+      vapiInstance.off("speech-end", onSpeechEnd);
+      vapiInstance.off("error", onError);
     };
-  }, [vapi, analyser]);
+  }, [vapiInstance, analyser]);
 
   return { callStatus, isSpeechActive, speaker, analyser, start, stop };
 };
