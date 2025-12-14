@@ -1,7 +1,7 @@
 "use client";
 
-import Vapi from "@vapi-ai/web";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import type Vapi from "@vapi-ai/web";
+import { useState, useEffect, useCallback } from "react";
 import * as Tone from 'tone';
 
 export type CallStatus = "idle" | "connecting" | "active" | "ended";
@@ -11,16 +11,23 @@ export const useVapi = () => {
   const [isSpeechActive, setIsSpeechActive] = useState(false);
   const [speaker, setSpeaker] = useState<'user' | 'bot' | null>(null);
   const [analyser, setAnalyser] = useState<Tone.Analyser | null>(null);
+  const [vapi, setVapi] = useState<Vapi | null>(null);
 
-  const vapi = useMemo(() => {
-    const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-    if (!publicKey || publicKey === "your-vapi-public-key-here") {
-      console.warn("VAPI public key not found or is a placeholder. Voice demo will be disabled.");
-      return null;
-    }
-    return new Vapi(publicKey);
+  useEffect(() => {
+    // Initialize Vapi on the client side only
+    const initializeVapi = async () => {
+      const VapiModule = (await import("@vapi-ai/web")).default;
+      const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
+      if (!publicKey || publicKey === "your-vapi-public-key-here") {
+        console.warn("VAPI public key not found or is a placeholder. Voice demo will be disabled.");
+        setCallStatus("ended");
+        return;
+      }
+      setVapi(new VapiModule(publicKey));
+    };
+    initializeVapi();
   }, []);
-  
+
   const start = useCallback(async () => {
     if (!vapi) {
         setCallStatus("ended");
