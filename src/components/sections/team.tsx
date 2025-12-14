@@ -7,8 +7,8 @@ import { gsap } from "gsap";
 const teamMembers = [
     {
         id: 1,
-        name: "Rohan Chatterjee",
-        title: "Founder & Lead Architect",
+        name: "Rajib Singh",
+        title: "Founder and AI Engineer",
     },
     {
         id: 2,
