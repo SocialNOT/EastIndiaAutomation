@@ -1,8 +1,12 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Linkedin, Mail, Twitter } from "lucide-react";
 import { Logo } from "../logo";
+import { useModal } from "../modal-provider";
 
 export function Footer() {
+  const { setOpen } = useModal();
   return (
     <footer id="contact" className="w-full bg-background border-t-2 border-primary/20 py-20">
       <div className="container mx-auto px-4 text-center flex flex-col items-center gap-8">
@@ -15,7 +19,11 @@ export function Footer() {
             We onboard only 3 institutions per month to ensure quality protocols.
             </p>
         </div>
-        <Button size="lg" className="w-full max-w-md font-bold tracking-wider text-xl px-8 py-8 transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))]">
+        <Button 
+          size="lg" 
+          className="w-full max-w-md font-bold tracking-wider text-xl px-8 py-8 transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))]"
+          onClick={() => setOpen(true)}
+        >
           INITIATE CONSULTATION PROTOCOL
         </Button>
         <div className="mt-8 flex flex-col items-center gap-4">

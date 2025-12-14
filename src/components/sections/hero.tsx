@@ -1,8 +1,13 @@
+"use client";
+
 import { ThreeGlobe } from "@/components/three-globe";
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
+import { useModal } from "../modal-provider";
 
 export function HeroSection() {
+  const { setOpen } = useModal();
+
   return (
     <section id="hero" className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden text-center pt-20">
       <ThreeGlobe />
@@ -14,7 +19,11 @@ export function HeroSection() {
           We engineer 24/7 AI workforces for Kolkata’s premier institutions. Stop relying on manual labor for digital problems.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
-          <Button size="lg" className="font-bold tracking-wider text-lg px-8 py-6 transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))]">
+          <Button 
+            size="lg" 
+            className="font-bold tracking-wider text-lg px-8 py-6 transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))]"
+            onClick={() => setOpen(true)}
+          >
             DEPLOY INTELLIGENCE
           </Button>
           <Button asChild size="lg" variant="outline" className="font-bold tracking-wider text-lg px-8 py-6 border-2 transition-all duration-300 hover:bg-primary/10 hover:text-primary-foreground hover:border-primary">

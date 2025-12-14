@@ -1,3 +1,5 @@
+"use client";
+
 import { Header } from "@/components/sections/header";
 import { HeroSection } from "@/components/sections/hero";
 import { TrustTickerSection } from "@/components/sections/trust-ticker";
@@ -13,8 +15,10 @@ import { CaseStudiesSection } from "@/components/sections/case-studies";
 import { TeamSection } from "@/components/sections/team";
 import { FAQSection } from "@/components/sections/faq";
 import { Footer } from "@/components/sections/footer";
+import { useModal } from "@/components/modal-provider";
 
 export default function Home() {
+  const { setOpen } = useModal();
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
       <Header />

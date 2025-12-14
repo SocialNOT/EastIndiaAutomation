@@ -4,9 +4,11 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
+import { useModal } from "../modal-provider";
 
 export function Header() {
     const { setTheme, theme } = useTheme();
+    const { setOpen } = useModal();
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm">
@@ -25,8 +27,8 @@ export function Header() {
                         <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                         <span className="sr-only">Toggle theme</span>
                     </Button>
-                    <Button asChild>
-                        <a href="#contact">Get Started</a>
+                    <Button onClick={() => setOpen(true)}>
+                        Get Started
                     </Button>
                 </div>
             </div>
