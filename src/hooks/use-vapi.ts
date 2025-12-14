@@ -28,7 +28,11 @@ export const useVapi = () => {
     initializeVapi();
 
     return () => {
-      vapiInstance?.destroy();
+      // Use a functional update to get the latest state of vapiInstance
+      setVapiInstance(v => {
+        v?.destroy();
+        return null;
+      });
     };
   }, []); 
 
