@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DoorClosed, Repeat1, MessagesSquare } from "lucide-react";
+import { DoorClosed, Repeat, MessageCircleQuestion } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface AgitationCardProps {
@@ -30,12 +30,12 @@ export function AgitationSection() {
       description: "Your customers are awake at 10 PM. Your staff is not. You are losing leads daily.",
     },
     {
-      icon: Repeat1,
+      icon: Repeat,
       title: "The Support Loop",
       description: "Your best employees waste hours answering the same 5 questions instead of doing high-value work.",
     },
     {
-      icon: MessagesSquare,
+      icon: MessageCircleQuestion,
       title: "The Language Barrier",
       description: "In a multilingual region, English-only support is a business failure.",
     },

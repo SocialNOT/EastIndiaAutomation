@@ -16,62 +16,24 @@ interface Message {
 export function TextDemo() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  
-  const [run, { data, loading, error, stream }] = useFlow(liveGeminiDemo);
+  const { run, streaming, loading, error } = useFlow(liveGeminiDemo);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const running = loading;
 
   useEffect(() => {
-    if (!stream) return;
-  
-    const reader = stream.getReader();
-    const decoder = new TextDecoder();
-    let streamedText = "";
-  
-    // Find the last bot message and clear it for the new response.
-    setMessages((prev) => {
-      const newMessages = [...prev];
-      const lastMessage = newMessages[newMessages.length - 1];
-      if (lastMessage?.role === 'bot') {
-        lastMessage.text = ""; 
-      }
-      return newMessages;
-    });
-  
-    const read = () => {
-      reader.read().then(({ done, value }) => {
-        if (done) {
-          return;
+    if (streaming) {
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage?.role === 'bot') {
+          lastMessage.text = streaming.response;
         }
-  
-        const chunk = decoder.decode(value, { stream: true });
-        streamedText += chunk;
-
-        try {
-          // Each chunk might be a partial JSON object, so we'll try to parse what we have so far.
-          const parsed = JSON.parse(streamedText);
-          
-          setMessages((prev) => {
-              const newMessages = [...prev];
-              const botMessage = newMessages[newMessages.length - 1];
-              if (botMessage?.role === 'bot') {
-                  botMessage.text = parsed.response;
-              }
-              return newMessages;
-          });
-
-        } catch (e) {
-          // Incomplete JSON, wait for more chunks.
-        }
-  
-        read();
+        return newMessages;
       });
-    };
-  
-    read();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream]);
+    }
+  }, [streaming]);
+
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -84,13 +46,11 @@ export function TextDemo() {
   };
   
   useEffect(() => {
-    if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
+    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+    if (viewport) {
+      viewport.scrollTop = viewport.scrollHeight;
     }
-  }, [messages, running]);
+  }, [messages, running, streaming]);
 
 
   return (
@@ -105,7 +65,7 @@ export function TextDemo() {
               }`}
             >
               {msg.role === "bot" && (
-                <Bot className="h-6 w-6 text-cyan-400 shrink-0 mt-1" />
+                <Bot className="h-6 w-6 text-accent shrink-0 mt-1" />
               )}
               <div
                 className={`max-w-xl rounded-lg px-4 py-2 ${
@@ -129,10 +89,10 @@ export function TextDemo() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Query the system..."
-          className="bg-background/80 text-base focus-visible:ring-cyan-400"
+          className="bg-background/80 text-base focus-visible:ring-accent"
           disabled={running}
         />
-        <Button type="submit" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary" disabled={running}>
+        <Button type="submit" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary-foreground" disabled={running}>
           {running ? "Processing..." : "Send"}
         </Button>
       </form>

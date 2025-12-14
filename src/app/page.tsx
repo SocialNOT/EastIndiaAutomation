@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
 import { HeroSection } from "@/components/sections/hero";
 import { TrustTickerSection } from "@/components/sections/trust-ticker";
 import { AgitationSection } from "@/components/sections/agitation";
@@ -23,7 +22,6 @@ export default function Home() {
       <WhyUsSection />
       <FAQSection />
       <Footer />
-      <Toaster />
     </main>
   );
 }

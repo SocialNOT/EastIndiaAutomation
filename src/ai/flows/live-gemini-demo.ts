@@ -20,26 +20,31 @@ const LiveGeminiDemoOutputSchema = z.object({
 });
 export type LiveGeminiDemoOutput = z.infer<typeof LiveGeminiDemoOutputSchema>;
 
-export async function liveGeminiDemo(input: LiveGeminiDemoInput): Promise<LiveGeminiDemoOutput> {
-  return liveGeminiDemoFlow(input);
+export async function liveGeminiDemo(input: LiveGeminiDemoInput) {
+    return liveGeminiDemoFlow(input);
 }
-
-const liveGeminiDemoPrompt = ai.definePrompt({
-  name: 'liveGeminiDemoPrompt',
-  input: {schema: LiveGeminiDemoInputSchema},
-  prompt: `{{query}}`,
-});
+  
 
 const liveGeminiDemoFlow = ai.defineFlow(
-  {
-    name: 'liveGeminiDemoFlow',
-    inputSchema: LiveGeminiDemoInputSchema,
-    outputSchema: LiveGeminiDemoOutputSchema,
-  },
-  async input => {
-    const {text} = await ai.generate({
-      prompt: input.query,
-    });
-    return {response: text!};
-  }
-);
+    {
+      name: 'liveGeminiDemoFlow',
+      inputSchema: LiveGeminiDemoInputSchema,
+      outputSchema: LiveGeminiDemoOutputSchema,
+    },
+    async (input) => {
+        const {stream, response} = await ai.generate({
+            prompt: input.query,
+            model: 'gemini-1.5-flash',
+            stream: true,
+        });
+  
+        let text = '';
+        for await (const chunk of stream) {
+            text += chunk.text;
+        }
+        
+        const final = await response;
+        return final.output!;
+    }
+  );
+  

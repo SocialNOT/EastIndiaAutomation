@@ -10,6 +10,7 @@ interface PillarProps {
   icon: LucideIcon;
   title: string;
   description: string;
+  cta: string;
 }
 
 const pillarsData: PillarProps[] = [
@@ -17,25 +18,29 @@ const pillarsData: PillarProps[] = [
     icon: BrainCircuit,
     title: "24/7 Frontline Chat Agents",
     description: "Forget dumb menu bots. We deploy multilingual agents (Bengali/Hindi/English) trained on your data that capture qualified leads and inject them directly into your CRM while you sleep.",
+    cta: "Explore Chat Protocols",
   },
   {
     icon: Waves,
     title: "Human-Parity Voice AI",
     description: "Eliminate hold times. Our ultra-low latency voice agents handle inbound calls, schedule appointments, and answer queries over the phone with startling realism.",
+    cta: "Hear the Difference",
   },
   {
     icon: Server,
     title: "Your Institutional Brain, Digitized",
     description: "Secure, private Large Language Models trained exclusively on your decades of messy internal documents, PDFs, and policies for instant staff querying.",
+    cta: "Secure Your Data",
   },
   {
     icon: Cog,
     title: "The Invisible Glue",
     description: "We connect your disconnected apps. When 'A' happens in your CRM, we automatically trigger 'B' in your accounts software, without human intervention.",
+    cta: "Optimize Workflows",
   }
 ];
 
-function PillarCard({ icon: Icon, title, description, isVisible }: PillarProps & { isVisible: boolean }) {
+function PillarCard({ icon: Icon, title, description, cta, isVisible }: PillarProps & { isVisible: boolean }) {
   return (
     <div className={cn(
       "p-8 border-l-4 border-primary bg-card/30 transition-all duration-700 ease-out",
@@ -47,7 +52,7 @@ function PillarCard({ icon: Icon, title, description, isVisible }: PillarProps &
       </div>
       <p className="text-muted-foreground mb-6">{description}</p>
       <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10">
-        Explore Protocols <ArrowRight className="ml-2 h-4 w-4" />
+        {cta} <ArrowRight className="ml-2 h-4 w-4" />
       </Button>
     </div>
   );
@@ -64,7 +69,7 @@ export function PillarsSection() {
           if (entry.isIntersecting) {
             const pillarIndex = parseInt(entry.target.getAttribute('data-index') || '0', 10);
             setTimeout(() => {
-              setVisiblePillars((prev) => [...prev, pillarIndex]);
+              setVisiblePillars((prev) => [...new Set([...prev, pillarIndex])]);
             }, pillarIndex * 200); // Staggered delay
           }
         });

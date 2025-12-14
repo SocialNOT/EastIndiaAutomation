@@ -2,6 +2,7 @@
 
 import Vapi from "@vapi-ai/web";
 import { useState, useMemo, useEffect, useCallback } from "react";
+import * as Tone from 'tone';
 
 export type CallStatus = "idle" | "connecting" | "active" | "ended";
 
@@ -9,6 +10,7 @@ export const useVapi = () => {
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [isSpeechActive, setIsSpeechActive] = useState(false);
   const [speaker, setSpeaker] = useState<'user' | 'bot' | null>(null);
+  const [analyser, setAnalyser] = useState<Tone.Analyser | null>(null);
 
   const vapi = useMemo(() => {
     const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
@@ -18,8 +20,8 @@ export const useVapi = () => {
     }
     return new Vapi(publicKey);
   }, []);
-
-  const start = useCallback(() => {
+  
+  const start = useCallback(async () => {
     if (!vapi) return;
     setCallStatus("connecting");
     const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
@@ -28,7 +30,33 @@ export const useVapi = () => {
         setCallStatus("ended");
         return;
     }
-    vapi.start(assistantId);
+
+    try {
+        await Tone.start();
+        const newAnalyser = new Tone.Analyser("waveform", 1024);
+
+        vapi.start(assistantId);
+
+        // Connect microphone to analyser
+        const mic = new Tone.UserMedia();
+        await mic.open();
+        mic.connect(newAnalyser);
+
+        // Connect assistant audio to analyser
+        const assistantNode = vapi.getAudioNode();
+        if (assistantNode) {
+            Tone.connect(assistantNode, newAnalyser);
+        } else {
+            console.warn("Could not get Vapi audio node to connect to visualizer.");
+        }
+
+        setAnalyser(newAnalyser);
+
+    } catch (e) {
+        console.error("Error starting Vapi call or Tone.js:", e);
+        setCallStatus("ended");
+    }
+
   }, [vapi]);
 
   const stop = useCallback(() => {
@@ -41,13 +69,17 @@ export const useVapi = () => {
     if (!vapi) return;
 
     const onCallStart = () => setCallStatus("active");
-    const onCallEnd = () => setCallStatus("ended");
+    const onCallEnd = () => {
+      setCallStatus("ended");
+      analyser?.dispose();
+      setAnalyser(null);
+    };
     const onSpeechStart = (payload: any) => {
-        setIsSpeechActive(true)
+        setIsSpeechActive(true);
         setSpeaker(payload.role === 'assistant' ? 'bot' : 'user');
     };
     const onSpeechEnd = () => {
-        setIsSpeechActive(false)
+        setIsSpeechActive(false);
         setSpeaker(null);
     };
     const onError = (e: any) => {
@@ -68,7 +100,7 @@ export const useVapi = () => {
       vapi.off("speech-end", onSpeechEnd);
       vapi.off("error", onError);
     };
-  }, [vapi]);
+  }, [vapi, analyser]);
 
-  return { callStatus, isSpeechActive, speaker, start, stop };
+  return { callStatus, isSpeechActive, speaker, analyser, start, stop };
 };
