@@ -2,7 +2,7 @@
 
 import type Vapi from "@vapi-ai/web";
 import { useState, useEffect, useCallback } from "react";
-import * as Tone from 'tone';
+import type { Analyser } from 'tone';
 
 export type CallStatus = "idle" | "connecting" | "active" | "ended";
 
@@ -10,11 +10,10 @@ export const useVapi = () => {
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [isSpeechActive, setIsSpeechActive] = useState(false);
   const [speaker, setSpeaker] = useState<'user' | 'bot' | null>(null);
-  const [analyser, setAnalyser] = useState<Tone.Analyser | null>(null);
+  const [analyser, setAnalyser] = useState<Analyser | null>(null);
   const [vapiInstance, setVapiInstance] = useState<Vapi | null>(null);
 
   useEffect(() => {
-    // This effect runs only on the client, ensuring Vapi is not imported on the server.
     const initializeVapi = async () => {
       const VapiModule = (await import("@vapi-ai/web")).default;
       const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
@@ -28,11 +27,10 @@ export const useVapi = () => {
     };
     initializeVapi();
 
-    // Cleanup function to dispose of the Vapi instance.
     return () => {
-        vapiInstance?.destroy();
+      vapiInstance?.destroy();
     };
-  }, []); // Empty dependency array ensures this runs only once on mount.
+  }, []); 
 
 
   const start = useCallback(async () => {
@@ -50,17 +48,16 @@ export const useVapi = () => {
     }
 
     try {
+        const Tone = await import('tone');
         await Tone.start();
         const newAnalyser = new Tone.Analyser("waveform", 1024);
 
         vapiInstance.start(assistantId);
 
-        // Connect microphone to analyser
         const mic = new Tone.UserMedia();
         await mic.open();
         mic.connect(newAnalyser);
 
-        // Connect assistant audio to analyser
         const assistantNode = vapiInstance.getAudioNode();
         if (assistantNode) {
             Tone.connect(assistantNode, newAnalyser);
