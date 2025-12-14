@@ -1,1 +1,6 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/voice-agent-call-handling.ts';
+import '@/ai/flows/live-gemini-demo.ts';
+import '@/ai/flows/multilingual-chat-agent.ts';

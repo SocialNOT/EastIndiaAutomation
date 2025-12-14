@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -43,38 +39,33 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 222 68% 11%; /* #0A192F */
+    --foreground: 210 40% 98%; /* Light grey for text */
+
+    --card: 222 50% 15%; /* Slightly lighter navy */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 68% 9%; /* Darker navy */
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 47 68% 46%; /* #C9A227 Bronze/Gold */
+    --primary-foreground: 222 68% 11%; /* Navy text on bronze buttons */
+
+    --secondary: 222 50% 25%; /* Mid-navy for secondary elements */
+    --secondary-foreground: 47 68% 46%; /* Bronze text on secondary elements */
+
+    --muted: 222 50% 25%;
+    --muted-foreground: 210 40% 60%;
+
+    --accent: 47 68% 46%; /* #C9A227 Bronze/Gold for active states */
+    --accent-foreground: 222 68% 11%;
+
+    --destructive: 0 72% 51%; /* A strong red */
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 47 68% 36%; /* Darker Bronze for borders */
+    --input: 222 50% 20%; /* Navy for input backgrounds */
+    --ring: 47 68% 46%; /* Bronze for focus rings */
   }
 }
 
@@ -84,5 +75,7 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230D2447' fill-opacity='0.15' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+    scroll-behavior: smooth;
   }
 }
