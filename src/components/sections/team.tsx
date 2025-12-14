@@ -12,47 +12,43 @@ const teamMembers = [
     },
     {
         id: 2,
-        name: "Priya Sharma",
-        title: "Head of AI Integration",
+        name: "Sharmistha Routh",
+        title: "Director",
     },
     {
         id: 3,
-        name: "Ankit Gupta",
-        title: "Senior DevOps Engineer",
+        name: "Dr Tilak Chatterjee",
+        title: "Investor and Mentor",
     },
 ];
 
 function TeamMemberCard({ name, title }: { name: string, title: string }) {
-    const nameRef = useRef<HTMLDivElement>(null);
+    const cardRef = useRef<HTMLDivElement>(null);
+    const firstLetter = name.charAt(0);
 
     useLayoutEffect(() => {
-        const el = nameRef.current;
+        const el = cardRef.current;
         if (!el) return;
 
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting) {
-                gsap.from(el.children, {
-                    opacity: 0,
-                    y: 20,
-                    duration: 0.5,
-                    stagger: 0.05,
-                    ease: "power3.out",
-                });
+                gsap.fromTo(el,
+                    { opacity: 0, y: 50 },
+                    { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
+                );
                 observer.unobserve(el);
             }
-        }, { threshold: 0.5 });
+        }, { threshold: 0.2 });
         
         observer.observe(el);
         return () => observer.disconnect();
     }, []);
 
     return (
-        <Card className="text-center bg-transparent border-none shadow-none">
+        <Card ref={cardRef} className="text-center bg-transparent border-none shadow-none opacity-0">
             <div className="relative h-64 w-64 mx-auto rounded-full border-4 border-primary bg-background flex items-center justify-center">
-                 <div ref={nameRef} className="font-headline text-3xl text-primary text-center p-4">
-                    {name.split("").map((char, index) => (
-                        <span key={index} className="inline-block opacity-0">{char === ' ' ? '\u00A0' : char}</span>
-                    ))}
+                 <div className="font-headline text-9xl text-primary">
+                    {firstLetter}
                 </div>
             </div>
             <CardHeader className="p-4">
