@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { addLead } from "@/firebase/leads";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "./ui/textarea";
 
@@ -47,22 +46,15 @@ export function LeadCaptureModal() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      addLead(values);
-      toast({
-        title: "Consultation Requested",
-        description: "Thank you! We will be in touch shortly.",
-      });
-      form.reset();
-      setOpen(false);
-    } catch (error) {
-      console.error("Error adding lead: ", error);
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem with your request.",
-      });
-    }
+    // The lead submission logic is removed as Firebase is no longer part of the project.
+    // We will just show a success message.
+    console.log("Lead submitted (no backend):", values);
+    toast({
+      title: "Consultation Requested",
+      description: "Thank you! We will be in touch shortly.",
+    });
+    form.reset();
+    setOpen(false);
   }
 
   return (

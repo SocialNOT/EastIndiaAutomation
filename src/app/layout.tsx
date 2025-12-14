@@ -4,8 +4,6 @@ import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import { ModalProvider } from '@/components/modal-provider';
 import { LeadCaptureModal } from '@/components/lead-capture-modal';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
-import FirebaseErrorListener from '@/components/FirebaseErrorListener';
 
 export const metadata: Metadata = {
   title: 'East India Automation',
@@ -30,14 +28,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <Providers>
-          <FirebaseClientProvider>
-            <ModalProvider>
-              {children}
-              <LeadCaptureModal />
-            </ModalProvider>
-            <Toaster />
-            <FirebaseErrorListener />
-          </FirebaseClientProvider>
+          <ModalProvider>
+            {children}
+            <LeadCaptureModal />
+          </ModalProvider>
+          <Toaster />
         </Providers>
       </body>
     </html>
