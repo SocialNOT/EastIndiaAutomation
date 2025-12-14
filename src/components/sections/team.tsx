@@ -29,13 +29,17 @@ function TeamMemberCard({ name, title }: { name: string, title: string }) {
     useLayoutEffect(() => {
         const el = cardRef.current;
         if (!el) return;
+        
+        gsap.set(el, { opacity: 0, y: 50 });
 
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting) {
-                gsap.fromTo(el,
-                    { opacity: 0, y: 50 },
-                    { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
-                );
+                gsap.to(el, { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 0.8, 
+                    ease: "power3.out" 
+                });
                 observer.unobserve(el);
             }
         }, { threshold: 0.2 });
@@ -45,7 +49,7 @@ function TeamMemberCard({ name, title }: { name: string, title: string }) {
     }, []);
 
     return (
-        <Card ref={cardRef} className="text-center bg-transparent border-none shadow-none opacity-0">
+        <Card ref={cardRef} className="text-center bg-transparent border-none shadow-none">
             <div className="relative h-64 w-64 mx-auto rounded-full border-4 border-primary bg-background flex items-center justify-center">
                  <div className="font-headline text-9xl text-primary">
                     {firstLetter}

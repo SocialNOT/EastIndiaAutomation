@@ -34,12 +34,17 @@ function AnimatedStat({ value, label }: { value: string, label: string }) {
         const el = statRef.current;
         if (!el) return;
 
+        gsap.set(el, { opacity: 0, y: 20 });
+
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting) {
-                gsap.fromTo(el,
-                    { opacity: 0, y: 20 },
-                    { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: 0.2 }
-                );
+                gsap.to(el, { 
+                    opacity: 1, 
+                    y: 0, 
+                    duration: 0.8, 
+                    ease: "power3.out", 
+                    delay: 0.2 
+                });
                 observer.unobserve(el);
             }
         }, { threshold: 0.5 });
@@ -50,7 +55,7 @@ function AnimatedStat({ value, label }: { value: string, label: string }) {
 
 
     return (
-        <div ref={statRef} className="text-center opacity-0">
+        <div ref={statRef} className="text-center">
             <p className="font-headline text-5xl text-primary">{value}</p>
             <p className="text-sm text-muted-foreground">{label}</p>
         </div>
