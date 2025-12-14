@@ -66,7 +66,7 @@ const websiteQAFlow = ai.defineFlow(
     outputSchema: WebsiteQAOutputSchema,
   },
   async (input) => {
-    const llmResponse = await prompt(input);
-    return llmResponse.output!;
+    const { output } = await prompt(input);
+    return output;
   }
 );
