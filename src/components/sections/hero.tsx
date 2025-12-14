@@ -1,15 +1,11 @@
 import { ThreeGlobe } from "@/components/three-globe";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/logo";
 import { ArrowDown } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section id="hero" className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden text-center">
+    <section id="hero" className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden text-center pt-20">
       <ThreeGlobe />
-      <div className="absolute top-8 left-8">
-        <Logo />
-      </div>
       <div className="z-10 flex flex-col items-center gap-6 px-4">
         <h1 className="font-headline text-5xl md:text-7xl lg:text-8xl text-foreground">
           The Industrial Revolution of Intelligence.
