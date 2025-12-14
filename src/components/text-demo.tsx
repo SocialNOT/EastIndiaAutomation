@@ -3,10 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { streamFlow } from "@genkit-ai/next/streaming";
+import { streamFlow } from "@genkit-ai/next/client";
 import { Bot, User, CornerDownLeft } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { askWebsite } from "@/ai/flows/website-qa-flow";
+import { askWebsite, WebsiteQAOutput } from "@/ai/flows/website-qa-flow";
 
 type Message = {
   role: "user" | "bot";
@@ -48,14 +48,15 @@ export function TextDemo() {
     setMessages(prev => [...prev, botMessage]);
 
     try {
-      const { stream } = streamFlow(askWebsite, { question: input });
-      for await (const chunk of stream) {
-        if (chunk?.answer) {
+      const stream = await streamFlow(askWebsite, { question: input });
+      for await (const chunk of stream()) {
+        const output = chunk.output as WebsiteQAOutput | undefined;
+        if (output?.answer) {
           setMessages(prev => {
             const newMessages = [...prev];
             const lastMessage = newMessages[newMessages.length - 1];
             if (lastMessage.role === "bot") {
-              lastMessage.message = chunk.answer;
+              lastMessage.message = output.answer;
             }
             return newMessages;
           });
