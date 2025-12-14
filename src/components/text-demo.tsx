@@ -16,25 +16,62 @@ interface Message {
 export function TextDemo() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [stream, setStream] = useState<{ chunk: any }[]>([]);
   
-  const [run, { data, loading, error }] = useFlow(liveGeminiDemo);
+  const [run, { data, loading, error, stream }] = useFlow(liveGeminiDemo);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const running = loading;
 
   useEffect(() => {
-    if (!data) return;
+    if (!stream) return;
   
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let streamedText = "";
+  
+    // Find the last bot message and clear it for the new response.
     setMessages((prev) => {
       const newMessages = [...prev];
-      if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'bot') {
-        newMessages[newMessages.length - 1].text = data.response;
+      const lastMessage = newMessages[newMessages.length - 1];
+      if (lastMessage?.role === 'bot') {
+        lastMessage.text = ""; 
       }
       return newMessages;
     });
   
-  }, [data]);
+    const read = () => {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          return;
+        }
+  
+        const chunk = decoder.decode(value, { stream: true });
+        streamedText += chunk;
+
+        try {
+          // Each chunk might be a partial JSON object, so we'll try to parse what we have so far.
+          const parsed = JSON.parse(streamedText);
+          
+          setMessages((prev) => {
+              const newMessages = [...prev];
+              const botMessage = newMessages[newMessages.length - 1];
+              if (botMessage?.role === 'bot') {
+                  botMessage.text = parsed.response;
+              }
+              return newMessages;
+          });
+
+        } catch (e) {
+          // Incomplete JSON, wait for more chunks.
+        }
+  
+        read();
+      });
+    };
+  
+    read();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stream]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
