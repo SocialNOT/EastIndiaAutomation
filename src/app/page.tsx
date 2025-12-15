@@ -4,7 +4,8 @@ import { HeroSection } from "@/components/sections/hero";
 import { TrustTickerSection } from "@/components/sections/trust-ticker";
 import { AgitationSection } from "@/components/sections/agitation";
 import { SolutionOverviewSection } from "@/components/sections/solution-overview";
-import { ExperienceZoneSection } from "@/components/sections/experience-zone";
+import { TextBotShowcase } from "@/components/sections/text-bot-showcase";
+import { VoiceBotShowcase } from "@/components/sections/voice-bot-showcase";
 import { BlueprintSection } from "@/components/sections/blueprint";
 import { CaseStudiesSection } from "@/components/sections/case-studies";
 import { CtaSection } from "@/components/sections/cta";
@@ -20,7 +21,8 @@ export default function Home() {
       <TrustTickerSection />
       <AgitationSection />
       <SolutionOverviewSection />
-      <ExperienceZoneSection />
+      <TextBotShowcase />
+      <VoiceBotShowcase />
       <BlueprintSection />
       <CaseStudiesSection />
       <LeadershipSection />
