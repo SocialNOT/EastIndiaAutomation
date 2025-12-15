@@ -6,6 +6,7 @@ import { ModalProvider } from '@/components/modal-provider';
 import { LeadCaptureModal } from '@/components/lead-capture-modal';
 import { CredibilityFooter } from '@/components/credibility-footer';
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from '@vercel/analytics/react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { ChatWidget } from '@/components/chat/chat-widget';
 
@@ -36,6 +37,7 @@ export default function RootLayout({
             {children}
             <LeadCaptureModal />
             <SpeedInsights />
+            <Analytics />
           </ModalProvider>
           <Toaster />
           <CredibilityFooter />
