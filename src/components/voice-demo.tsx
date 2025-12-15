@@ -25,7 +25,7 @@ const WaveformVisualizer = ({ analyser, speaker }: { analyser: Tone.Analyser | n
       const values = analyser.getValue();
       context.clearRect(0, 0, canvas.width, canvas.height);
       
-      let color = speaker === 'bot' ? 'rgb(34 211 238)' : "hsl(var(--primary))";
+      let color = speaker === 'bot' ? 'hsl(var(--accent))' : "hsl(var(--primary))";
 
       context.lineWidth = 2;
       context.strokeStyle = color;
@@ -116,7 +116,7 @@ export function VoiceDemo() {
   
   if (error) {
     return (
-        <div className="flex flex-col h-[60vh] items-center justify-center bg-black/50 border border-destructive/50 rounded-lg p-4 gap-4 text-center">
+        <div className="flex flex-col h-[60vh] items-center justify-center bg-black/5 dark:bg-black/50 border border-destructive/50 rounded-lg p-4 gap-4 text-center">
             <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Voice Agent Error</AlertTitle>
@@ -130,18 +130,19 @@ export function VoiceDemo() {
 
 
   return (
-    <div className="flex flex-col h-[60vh] items-center justify-center bg-black/50 border border-cyan-400/20 rounded-lg p-4 gap-8">
+    <div className="flex flex-col h-[60vh] items-center justify-center bg-black/5 dark:bg-black/50 border border-accent/20 rounded-lg p-4 gap-8">
+      <p className="text-muted-foreground text-center">Experience real-time accent-agnostic voice AI.</p>
       <div className="relative w-full h-32">
         {(callStatus === 'active') && <WaveformVisualizer analyser={analyser} speaker={speaker} />}
       </div>
       <Button
         onClick={handleButtonClick}
         className={cn(
-            "relative flex flex-col items-center justify-center w-64 h-64 rounded-full border-4 transition-all duration-300 ease-in-out",
+            "relative flex flex-col items-center justify-center w-64 h-64 rounded-full border-4 transition-all duration-300 ease-in-out font-code",
             "disabled:pointer-events-none",
-            callStatus === 'connecting' && 'animate-pulse border-cyan-400/80 bg-cyan-400/20 text-cyan-300',
+            callStatus === 'connecting' && 'animate-pulse border-accent/80 bg-accent/20 text-accent',
             callStatus === 'active' && 'border-destructive/80 bg-destructive/20 text-destructive-foreground hover:bg-destructive/30',
-            call-status === 'idle' && 'border-cyan-400 bg-cyan-400/20 text-cyan-300 hover:bg-cyan-400/30',
+            callStatus === 'idle' && 'border-accent bg-accent/20 text-accent hover:bg-accent/30',
             callStatus === 'ended' && 'border-muted-foreground bg-muted/20 text-muted-foreground',
             callStatus === 'error' && 'border-destructive/80 bg-destructive/20 text-destructive-foreground'
         )}
@@ -149,7 +150,7 @@ export function VoiceDemo() {
       >
         {getButtonContent(callStatus)}
       </Button>
-      <p className="text-muted-foreground h-4 text-cyan-400">
+      <p className="text-muted-foreground h-4 text-accent">
         {callStatus === 'active' ? (isSpeechActive ? (speaker === 'bot' ? "AI is speaking..." : "You are speaking...") : "Listening...") : ""}
       </p>
     </div>

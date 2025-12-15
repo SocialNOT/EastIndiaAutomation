@@ -4,65 +4,65 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 240 6% 96%; /* #F8F9FA Porcelain White */
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
+    --card: 240 6% 96%;
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 100%;
+    --popover: 240 6% 96%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 47 68% 46%;
-    --primary-foreground: 222 68% 11%;
+    --primary: 47 68% 46%; /* #C9A227 Brushed Bronze/Gold */
+    --primary-foreground: 215 39% 13%; /* Dark Navy for text on bronze */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 47 25% 91%; /* #F0EAD6 Muted Antique Ivory */
+    --secondary-foreground: 215 28% 17%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 188 80% 50%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 196 98% 45%; /* #00A8E8 Electric Blue */
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 47 68% 36%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 47 68% 46%;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222 68% 11%; /* #0A192F */
-    --foreground: 210 40% 98%; /* Light grey for text */
+    --background: 222 65% 10%; /* #0A1428 Deep Space Navy */
+    --foreground: 210 40% 98%;
 
-    --card: 222 50% 15%; /* Slightly lighter navy */
+    --card: 222 50% 15%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 68% 9%; /* Darker navy */
+    --popover: 222 68% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 47 68% 46%; /* #C9A227 Bronze/Gold */
-    --primary-foreground: 222 68% 11%; /* Navy text on bronze buttons */
+    --primary: 47 68% 46%; /* #C9A227 Brushed Bronze/Gold */
+    --primary-foreground: 215 39% 13%; /* Dark Navy for text on bronze */
 
-    --secondary: 222 50% 25%; /* Mid-navy for secondary elements */
-    --secondary-foreground: 47 68% 46%; /* Bronze text on secondary elements */
+    --secondary: 47 25% 91%; /* #F0EAD6 Muted Antique Ivory */
+    --secondary-foreground: 215 28% 17%;
 
     --muted: 222 50% 25%;
     --muted-foreground: 210 40% 60%;
 
-    --accent: 188 80% 50%; /* Electric Cyan */
+    --accent: 196 98% 45%; /* #00A8E8 Electric Blue */
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 72% 51%; /* A strong red */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 47 68% 36%; /* Darker Bronze for borders */
-    --input: 222 50% 20%; /* Navy for input backgrounds */
-    --ring: 47 68% 46%; /* Bronze for focus rings */
+    --input: 222 50% 20%;
+    --ring: 47 68% 46%;
   }
 }
 
@@ -72,7 +72,9 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%230D2447' fill-opacity='0.15'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image:
+      radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.05) 1px, transparent 0);
+    background-size: 2rem 2rem;
     scroll-behavior: smooth;
   }
 }

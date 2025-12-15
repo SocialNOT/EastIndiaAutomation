@@ -19,7 +19,7 @@ const config = {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Playfair Display', 'serif'],
+        headline: ['Cinzel Decorative', 'serif'],
         code: ['JetBrains Mono', 'monospace'],
       },
       colors: {

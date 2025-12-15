@@ -76,7 +76,7 @@ export function TextDemo() {
   };
 
   return (
-    <div className="flex flex-col h-[60vh] bg-black/80 border border-primary/20 rounded-lg p-4 font-code shadow-[0_0_20px_hsl(var(--primary),0.3)]">
+    <div className="flex flex-col h-[60vh] bg-black/80 dark:bg-black/80 border border-primary/20 rounded-lg p-4 font-code shadow-[0_0_20px_hsl(var(--primary),0.3)]">
       <ScrollArea className="flex-1 w-full mb-4 pr-4" ref={scrollAreaRef}>
         <div className="flex flex-col gap-4">
           {messages.map((m, i) => (
@@ -103,7 +103,7 @@ export function TextDemo() {
         <Input
           value={input}
           onChange={handleInputChange}
-          placeholder={isPending ? "Generating response..." : "Ask a question..."}
+          placeholder={isPending ? "Generating response..." : "Ask about our global logistics protocols... (English / Español / हिंदी)"}
           className="bg-background/50 border-primary/30 h-12 pr-12 text-base"
           disabled={isPending}
         />

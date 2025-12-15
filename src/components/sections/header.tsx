@@ -18,19 +18,18 @@ export function Header() {
                 </a>
                 <div className="flex items-center gap-4">
                     <nav className="hidden md:flex items-center gap-8">
-                        <a href="#solution" className="text-muted-foreground hover:text-primary transition-colors">Solution</a>
-                        <a href="#pillars" className="text-muted-foreground hover:text-primary transition-colors">Pillars</a>
-                        <a href="#experience-zone" className="text-muted-foreground hover:text-primary transition-colors">Demo</a>
-                        <a href="#blueprint" className="text-muted-foreground hover:text-primary transition-colors">Blueprint</a>
-                        <a href="#contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</a>
+                        <a href="#solution" className="text-muted-foreground hover:text-primary transition-colors">Solutions</a>
+                        <a href="#experience-zone" className="text-muted-foreground hover:text-primary transition-colors">Platform</a>
+                        <a href="#leadership" className="text-muted-foreground hover:text-primary transition-colors">Global Reach</a>
+                        <a href="#contact" className="text-muted-foreground hover:text-primary transition-colors">Company</a>
                     </nav>
                     <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
                         <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                         <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                         <span className="sr-only">Toggle theme</span>
                     </Button>
-                    <Button onClick={() => setOpen(true)}>
-                        Get Started
+                    <Button onClick={() => setOpen(true)} className="font-bold">
+                        DEPLOY INTELLIGENCE
                     </Button>
                 </div>
             </div>

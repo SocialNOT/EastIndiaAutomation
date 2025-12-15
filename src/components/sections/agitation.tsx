@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DoorClosed, Repeat, MessageCircleQuestion } from "lucide-react";
+import { Globe, Languages, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface AgitationCardProps {
@@ -10,13 +10,13 @@ interface AgitationCardProps {
 
 function AgitationCard({ icon: Icon, title, description }: AgitationCardProps) {
   return (
-    <Card className="bg-card/50 border-2 border-transparent transition-all duration-300 hover:border-destructive/50 hover:shadow-[0_0_15px_hsl(var(--destructive),0.5)]">
+    <Card className="bg-transparent border-none shadow-none text-secondary-foreground">
       <CardHeader className="flex flex-row items-center gap-4">
         <Icon className="h-10 w-10 text-primary" />
         <CardTitle className="font-headline text-2xl">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-muted-foreground">{description}</p>
+        <p className="text-secondary-foreground/80">{description}</p>
       </CardContent>
     </Card>
   );
@@ -25,27 +25,28 @@ function AgitationCard({ icon: Icon, title, description }: AgitationCardProps) {
 export function AgitationSection() {
   const cards: AgitationCardProps[] = [
     {
-      icon: DoorClosed,
-      title: "The 6 PM Shutdown",
-      description: "Your customers are awake at 10 PM. Your staff is not. You are losing leads daily.",
+      icon: Globe,
+      title: "The Time Zone Trap",
+      description: "Losing international leads because your support team is offline during their business hours.",
     },
     {
-      icon: Repeat,
-      title: "The Support Loop",
-      description: "Your best employees waste hours answering the same 5 questions instead of doing high-value work.",
-    },
-    {
-      icon: MessageCircleQuestion,
+      icon: Languages,
       title: "The Language Barrier",
-      description: "In a multilingual region, English-only support is a business failure.",
+      description: "Failing to capture global market share due to a lack of native-level multilingual support.",
+    },
+    {
+      icon: Users,
+      title: "The Scale Bottleneck",
+      description: "Human teams cannot scale instantly to meet seasonal global demand without massive overhead.",
     },
   ];
 
   return (
-    <section id="agitation" className="w-full py-20 md:py-32">
+    <section id="agitation" className="w-full py-20 md:py-32 bg-secondary">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="font-headline text-4xl md:text-5xl">Your Operations Are Bleeding Efficiency.</h2>
+          <h2 className="font-headline text-4xl md:text-5xl text-secondary-foreground">Your Operations Are Bleeding Efficiency.</h2>
+          <p className="text-lg md:text-xl text-secondary-foreground/80 mt-4">The 24/7 Global Market Never Sleeps. Your Operations Shouldn't Either.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {cards.map((card, index) => (

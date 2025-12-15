@@ -1,11 +1,61 @@
+import { BrainCircuit, Waves, Server, Cog, ArrowRight } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+interface PillarProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}
+
+const pillarsData: PillarProps[] = [
+  {
+    icon: BrainCircuit,
+    title: "Worldwide Intelligent Chat Protocols",
+    description: "Deploy multilingual agents (100+ languages) across web & WhatsApp to capture global leads 24/7.",
+  },
+  {
+    icon: Waves,
+    title: "International Human-Parity Voice AI",
+    description: "Handle inbound calls from any country with ultra-low latency, accent-agnostic voice agents.",
+  },
+  {
+    icon: Server,
+    title: "Cross-Border Custom Enterprise LLMs",
+    description: "Secure, private AI models trained on your multi-regional internal data, compliant with global data regulations.",
+  },
+  {
+    icon: Cog,
+    title: "Global End-to-End Business Automation",
+    description: "Connect your disparate international systems (CRM, ERP, Logistics) into one seamless automated workflow.",
+  }
+];
+
+function PillarCard({ icon: Icon, title, description }: PillarProps) {
+  return (
+    <div className="p-6 border-2 border-primary/20 bg-card/30 transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_20px_hsl(var(--primary),0.3)] rounded-lg flex flex-col gap-4">
+        <Icon className="h-10 w-10 text-primary" />
+        <h3 className="font-headline text-2xl">{title}</h3>
+      <p className="text-muted-foreground flex-grow">{description}</p>
+    </div>
+  );
+}
+
+
 export function SolutionOverviewSection() {
     return (
-      <section id="solution" className="w-full py-20 md:py-32 bg-card/20">
-        <div className="container mx-auto px-4 text-center max-w-4xl">
-          <h2 className="font-headline text-4xl md:text-5xl mb-6">Enter The Automated Infrastructure.</h2>
-          <p className="text-lg md:text-xl text-muted-foreground">
-            East India Automation is not an app wrapper. We build bespoke, industrial-grade AI pipelines that integrate deeply with your existing systems to automate conversations, processes, and knowledge retrieval.
-          </p>
+      <section id="solution" className="w-full py-20 md:py-32">
+        <div className="container mx-auto px-4">
+            <div className="text-center max-w-4xl mx-auto mb-12">
+              <h2 className="font-headline text-4xl md:text-5xl mb-6">Our Global AI Infrastructure.</h2>
+              <p className="text-lg md:text-xl text-muted-foreground">
+                Built on a foundation of registered Indian engineering expertise and scalable cloud architecture.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {pillarsData.map((pillar) => (
+                    <PillarCard key={pillar.title} {...pillar} />
+                ))}
+            </div>
         </div>
       </section>
     );
