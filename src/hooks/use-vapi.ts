@@ -1,3 +1,4 @@
+
 "use client";
 
 import type Vapi from "@vapi-ai/web";
@@ -6,7 +7,12 @@ import type { Analyser } from 'tone';
 
 export type CallStatus = "idle" | "connecting" | "active" | "ended" | "error";
 
-export const useVapi = () => {
+interface UseVapiProps {
+  publicKey?: string;
+  assistantId?: string;
+}
+
+export const useVapi = ({publicKey, assistantId}: UseVapiProps) => {
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [isSpeechActive, setIsSpeechActive] = useState(false);
   const [speaker, setSpeaker] = useState<'user' | 'bot' | null>(null);
@@ -17,21 +23,18 @@ export const useVapi = () => {
   useEffect(() => {
     const initializeVapi = async () => {
       try {
-        const VapiModule = (await import("@vapi-ai/web")).default;
-        const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-        const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
-
         if (!publicKey) {
-          setError("Vapi Error: `NEXT_PUBLIC_VAPI_PUBLIC_KEY` is not configured in the environment. Voice agent is disabled.");
+          setError("Vapi Error: `VAPI_PUBLIC_API_KEY` is not configured. Voice agent is disabled.");
           setCallStatus("error");
           return;
         }
          if (!assistantId) {
-          setError("Vapi Error: `NEXT_PUBLIC_VAPI_ASSISTANT_ID` is not configured. Voice agent is disabled.");
+          setError("Vapi Error: `VAPI_ASSISTANT_ID` is not configured. Voice agent is disabled.");
           setCallStatus("error");
           return;
         }
 
+        const VapiModule = (await import("@vapi-ai/web")).default;
         const vapi = new VapiModule(publicKey);
         setVapiInstance(vapi);
 
@@ -72,18 +75,17 @@ export const useVapi = () => {
       });
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [publicKey, assistantId]);
 
 
   const start = useCallback(async () => {
-    if (!vapiInstance) {
+    if (!vapiInstance || !assistantId) {
         setError("Vapi is not initialized. Cannot start call.");
         setCallStatus("error");
         return;
     }
     
     setCallStatus("connecting");
-    const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
 
     try {
         const Tone = await import('tone');
@@ -111,7 +113,7 @@ export const useVapi = () => {
         setCallStatus("error");
     }
 
-  }, [vapiInstance]);
+  }, [vapiInstance, assistantId]);
 
   const stop = useCallback(() => {
     if (!vapiInstance) return;

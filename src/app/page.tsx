@@ -1,4 +1,3 @@
-"use client";
 
 import { Header } from "@/components/sections/header";
 import { HeroSection } from "@/components/sections/hero";
@@ -11,10 +10,11 @@ import { CaseStudiesSection } from "@/components/sections/case-studies";
 import { CtaSection } from "@/components/sections/cta";
 import { LeadershipSection } from "@/components/sections/leadership";
 import { Footer } from "@/components/sections/footer";
-import { useModal } from "@/components/modal-provider";
 
 export default function Home() {
-  const { setOpen } = useModal();
+  const vapiPublicKey = process.env.VAPI_PUBLIC_API_KEY;
+  const vapiAssistantId = process.env.VAPI_ASSISTANT_ID;
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
       <Header />
@@ -22,7 +22,10 @@ export default function Home() {
       <TrustTickerSection />
       <AgitationSection />
       <SolutionOverviewSection />
-      <ExperienceZoneSection />
+      <ExperienceZoneSection 
+        vapiPublicKey={vapiPublicKey}
+        vapiAssistantId={vapiAssistantId}
+      />
       <BlueprintSection />
       <CaseStudiesSection />
       <LeadershipSection />

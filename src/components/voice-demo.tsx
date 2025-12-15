@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -62,9 +63,13 @@ const WaveformVisualizer = ({ analyser, speaker }: { analyser: Tone.Analyser | n
   return <canvas ref={canvasRef} className="w-full h-full" />;
 };
 
+interface VoiceDemoProps {
+  vapiPublicKey?: string;
+  vapiAssistantId?: string;
+}
 
-export function VoiceDemo() {
-  const { callStatus, isSpeechActive, speaker, start, stop, analyser, error } = useVapi();
+export function VoiceDemo({ vapiPublicKey, vapiAssistantId }: VoiceDemoProps) {
+  const { callStatus, isSpeechActive, speaker, start, stop, analyser, error } = useVapi({publicKey: vapiPublicKey, assistantId: vapiAssistantId});
 
   const getButtonContent = (status: CallStatus) => {
     switch (status) {

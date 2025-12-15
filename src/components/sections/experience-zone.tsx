@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +7,12 @@ import { VoiceDemo } from "@/components/voice-demo";
 import { useEffect, useState } from "react";
 import { Skeleton } from "../ui/skeleton";
 
-export function ExperienceZoneSection() {
+interface ExperienceZoneProps {
+  vapiPublicKey?: string;
+  vapiAssistantId?: string;
+}
+
+export function ExperienceZoneSection({ vapiPublicKey, vapiAssistantId }: ExperienceZoneProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -39,7 +45,7 @@ export function ExperienceZoneSection() {
           </TabsContent>
           <TabsContent value="voice" className="mt-6">
             {isClient ? (
-              <VoiceDemo />
+              <VoiceDemo vapiPublicKey={vapiPublicKey} vapiAssistantId={vapiAssistantId} />
             ) : (
               <div className="flex flex-col min-h-[50vh] items-center justify-center bg-black/5 border dark:bg-black/50 border-accent/20 rounded-lg p-4 gap-8">
                 <Skeleton className="w-full max-w-md h-24" />
