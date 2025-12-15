@@ -61,13 +61,13 @@ export function TextDemo() {
                 return newMessages;
             });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error streaming from server action:", error);
         setMessages(prev => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
           if (lastMessage.role === "bot") {
-            lastMessage.message = "**Protocol Error:** An operational error occurred. Please verify your Gemini API key configuration and try again.";
+            lastMessage.message = `**Protocol Error:** A client-side error occurred while connecting to the AI service.\n\n**Details:** ${error.message || 'Unknown streaming error.'}`;
           }
           return newMessages;
         });

@@ -2,8 +2,6 @@
 
 import {
   GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
 } from '@google/generative-ai';
 
 const systemInstruction = `### ROLE & IDENTITY
@@ -50,7 +48,7 @@ export async function askWebsite({
   const stream = new ReadableStream<string>({
     async start(controller) {
       if (!geminiApiKey) {
-        controller.enqueue("**Protocol Error:** `GEMINI_API_KEY` is not configured. The chatbot is currently non-operational.");
+        controller.enqueue("**Protocol Error:** `GEMINI_API_KEY` is not configured on the server. The chatbot is non-operational.");
         controller.close();
         return;
       }
@@ -70,7 +68,8 @@ export async function askWebsite({
         }
       } catch (e: any) {
         console.error("Gemini API Error:", e);
-        controller.enqueue(`**Protocol Error:** A critical error occurred with the AI service. Please check your API key and configuration.\n\n**Details:** ${e.message || 'Unknown error'}`);
+        // Stream the actual error message back to the client
+        controller.enqueue(`**Protocol Error:** A critical error occurred with the AI service.\n\n**Details:** ${e.message || 'Unknown error'}`);
       } finally {
         controller.close();
       }
