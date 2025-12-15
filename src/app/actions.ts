@@ -83,11 +83,17 @@ export async function askWebsite({
 
     const stream = new ReadableStream<string>({
       async start(controller) {
-        for await (const chunk of result.stream) {
-          const chunkText = chunk.text();
-          controller.enqueue(chunkText);
+        try {
+            for await (const chunk of result.stream) {
+              const chunkText = chunk.text();
+              controller.enqueue(chunkText);
+            }
+            controller.close();
+        } catch (e: any) {
+            console.error("Streaming Error:", e);
+            controller.enqueue(`\n\n**Protocol Error:** An error occurred while generating the response: ${e.message}`);
+            controller.close();
         }
-        controller.close();
       },
     });
     return stream;
@@ -96,7 +102,7 @@ export async function askWebsite({
      const stream = new ReadableStream<string>({
       start(controller) {
         console.error("Gemini API Error:", e);
-        controller.enqueue(`An operational error occurred with the AI service: ${e.message}`);
+        controller.enqueue(`**Protocol Error:** An operational error occurred with the AI service. Please verify your API key and configuration. Details: ${e.message}`);
         controller.close();
       },
     });
