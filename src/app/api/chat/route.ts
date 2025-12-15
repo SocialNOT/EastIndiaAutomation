@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     });
 
     const stream = await model.generateContentStream({
-      contents: messages.filter((m: Message) => m.role !== 'system' && m.role !== 'assistant' || m.content !== 'Welcome to East India Automation. I am the automated Protocol Agent. How may I direct your inquiry regarding our AI infrastructure services?').map((m: Message) => ({
+      contents: messages.filter((m: Message) => m.role !== 'system').map((m: Message) => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content }],
       })),
