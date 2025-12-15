@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, User, CornerDownLeft } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
-import { askWebsite } from "@/app/actions";
 
 type Message = {
   role: "user" | "bot";
@@ -42,8 +41,18 @@ export function TextDemo() {
       setMessages(prev => [...prev, botMessage]);
 
       try {
-        const stream = await askWebsite({ question });
-        const reader = stream.getReader();
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        });
+
+        if (!response.ok || !response.body) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'The connection to the AI service failed.');
+        }
+        
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullAnswer = "";
 
@@ -62,7 +71,7 @@ export function TextDemo() {
             });
         }
       } catch (error: any) {
-        console.error("Error streaming from server action:", error);
+        console.error("Error streaming from API route:", error);
         setMessages(prev => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];

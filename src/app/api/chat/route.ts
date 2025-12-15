@@ -1,8 +1,10 @@
-'use server';
-
 import {
   GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
 } from '@google/generative-ai';
+
+export const runtime = 'edge';
 
 const systemInstruction = `### ROLE & IDENTITY
 You are the **EIA Protocol Agent**, the automated digital frontline for East India Automation (www.eastindiaautomation.in).
@@ -39,43 +41,53 @@ If a user shows interest or asks a question you cannot answer, pivot immediately
 `;
 
 
-export async function textToSpeech({ text }: { text: string }): Promise<{audioBase64: string | null; error: string | null}> {
-  const geminiApiKey = process.env.GEMINI_API_KEY;
+async function* streamGoogleAI(question: string, apiKey: string) {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-flash',
+    systemInstruction,
+  });
 
-  if (!geminiApiKey) {
-    return { audioBase64: null, error: "GEMINI_API_KEY is not configured." };
+  const result = await model.generateContentStream(question);
+  for await (const chunk of result.stream) {
+    const chunkText = chunk.text();
+    yield chunkText;
+  }
+}
+
+function iteratorToStream(iterator: AsyncGenerator<string>) {
+  return new ReadableStream({
+    async pull(controller) {
+      const { value, done } = await iterator.next();
+      if (done) {
+        controller.close();
+      } else {
+        controller.enqueue(new TextEncoder().encode(value));
+      }
+    },
+  });
+}
+
+export async function POST(req: Request) {
+  const { question } = await req.json();
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    return new Response(
+      "**Protocol Error:** `GEMINI_API_KEY` is not configured on the server. The chatbot is non-operational.",
+      { status: 500 }
+    );
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/text:synthesizeSpeech?key=${geminiApiKey}`;
-
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        input: { text },
-        voice: {
-          languageCode: 'en-US',
-          name: 'en-US-News-K',
-        },
-        audioConfig: {
-          audioEncoding: 'MP3',
-        },
-      }),
+    const iterator = streamGoogleAI(question, apiKey);
+    const stream = iteratorToStream(iterator);
+    return new Response(stream, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
-
-    if (!response.ok) {
-      const errorBody = await response.json();
-      console.error('TTS API Error:', errorBody);
-      throw new Error(errorBody.error.message || 'Failed to generate speech.');
-    }
-
-    const data = await response.json();
-    return { audioBase64: data.audioContent, error: null };
-  } catch (e: any) {
-    console.error("TTS Error:", e);
-    return { audioBase64: null, error: e.message || 'An unknown error occurred.' };
+  } catch (error: any) {
+    console.error("Gemini API Error in Route Handler:", error);
+    const errorMessage = `**Protocol Error:** A critical error occurred with the AI service.\n\n**Details:** ${error.message || 'Unknown error'}`;
+    return new Response(errorMessage, { status: 500 });
   }
 }
