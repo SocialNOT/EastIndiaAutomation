@@ -18,7 +18,7 @@ export function ChatWidget() {
           onClick={() => setIsOpen(true)}
           aria-label="Open Chat"
         >
-          <MessageSquare className="h-8 w-8" />
+          <MessageSquare className="h-8 w-8 text-primary-foreground" />
         </Button>
       </div>
 

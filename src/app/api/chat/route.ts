@@ -1,6 +1,4 @@
-import {
-  GoogleGenerativeAI,
-} from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 export const runtime = 'edge';
 
@@ -38,21 +36,14 @@ If a user shows interest or asks a question you cannot answer, pivot immediately
 "To address that specific requirement, a consultation with our engineering team is necessary. Please provide your official email address so I may schedule a briefing."
 `;
 
-
 async function* streamGoogleAI(question: string, apiKey: string) {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: 'gemini-1.5-flash',
+    systemInstruction: systemInstruction,
   });
 
-  const result = await model.generateContentStream({
-      contents: [
-          { role: "user", parts: [{ text: question }] }
-      ],
-      systemInstruction: {
-          parts: [{ text: systemInstruction }]
-      }
-  });
+  const result = await model.generateContentStream(question);
 
   for await (const chunk of result.stream) {
     const chunkText = chunk.text();
@@ -79,8 +70,8 @@ export async function POST(req: Request) {
 
   if (!apiKey) {
     return new Response(
-      "**Protocol Error:** `GEMINI_API_KEY` is not configured on the server. The chatbot is non-operational.",
-      { status: 500 }
+      JSON.stringify({ error: "**Protocol Error:** `GEMINI_API_KEY` is not configured on the server. The chatbot is non-operational." }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
@@ -93,6 +84,6 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Gemini API Error in Route Handler:", error);
     const errorMessage = `**Protocol Error:** A critical error occurred with the AI service.\n\n**Details:** ${error.message || 'Unknown error'}`;
-    return new Response(errorMessage, { status: 500 });
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }

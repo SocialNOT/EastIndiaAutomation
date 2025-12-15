@@ -48,9 +48,13 @@ export function TextDemo() {
           body: JSON.stringify({ question }),
         });
 
-        if (!response.ok || !response.body) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'The connection to the AI service failed.');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'The connection to the AI service failed.');
+        }
+
+        if (!response.body) {
+            throw new Error("The response from the AI service was empty.");
         }
         
         const reader = response.body.getReader();
