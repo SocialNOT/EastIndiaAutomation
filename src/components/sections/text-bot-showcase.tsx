@@ -48,21 +48,21 @@ export function TextBotShowcase() {
   ];
 
   return (
-    <section ref={sectionRef} id="text-showcase" className="w-full py-16 md:py-24 bg-foreground">
+    <section ref={sectionRef} id="text-showcase" className="w-full py-16 md:py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
-          <div className="space-y-6 text-background">
+          <div className="space-y-6">
             <p ref={register} className="font-code text-sm tracking-widest text-primary uppercase">Feature Showcase: Text Intelligence</p>
-            <h2 ref={register} className="font-headline text-4xl md:text-5xl !leading-tight text-background">
+            <h2 ref={register} className="font-headline text-4xl md:text-5xl !leading-tight text-foreground">
               The 24/7 Global Deal Room.
             </h2>
-            <p ref={register} className="text-lg md:text-xl text-background/80">
+            <p ref={register} className="text-lg md:text-xl text-muted-foreground">
               Stop letting time zones and language barriers kill your international leads. Our AI-powered text intelligence transforms your website into a perpetual, multilingual sales engine that qualifies and captures opportunities while you sleep.
             </p>
           </div>
           
           <div ref={register}>
-            <Card className="bg-primary/10 border-primary/20 backdrop-blur-sm shadow-[0_0_30px_hsl(var(--primary)/0.2)]">
+            <Card className="bg-black/20 border-primary/20 backdrop-blur-sm shadow-[0_0_30px_hsl(var(--primary)/0.2)]">
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center gap-3">
                     <MessageSquare className="h-8 w-8 text-primary" />
