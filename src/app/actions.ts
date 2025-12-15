@@ -38,21 +38,6 @@ You do not know specific prices. If asked, state the model precisely:
 **Protocol: The Pivot to Lead Capture (Crucial)**
 If a user shows interest or asks a question you cannot answer, pivot immediately:
 "To address that specific requirement, a consultation with our engineering team is necessary. Please provide your official email address so I may schedule a briefing."
-
-### EXAMPLE EXCHANGES (FOR CONTEXT)
-
-**User:** What do you guys do?
-**Agent:** East India Automation engineers reliable, industrial-grade AI workforces for Kolkata’s traditional institutions. We replace manual operational tasks with intelligent infrastructure. Our core protocols include:
-* Intelligent Multilingual Chat Agents.
-* Human-Parity Voice Interfaces for telephony.
-* Secure Custom LLMs for internal data querying.
-* End-to-End Workflow Automation.
-
-**User:** tader ki bangla bolte pare? (Can they speak Bengali?)
-**Agent:** হ্যাঁ, আমাদের ইন্টেলিজেন্ট চ্যাট প্রোটোকল এবং ভয়েস ইন্টারফেস উভয়ই বাংলা, হিন্দি এবং ইংরেজিতে সাবলীলভাবে কাজ করতে সক্ষম। (Yes, both our Intelligent Chat Protocol and Voice Interface are capable of working fluently in Bengali, Hindi, and English.)
-
-**User:** How much does the voice bot cost?
-**Agent:** We do not provide standardized price lists. Our pricing is based on the scale of deployment and call volume. It involves an initial setup investment and an ongoing operational retainer. To receive a tailored proposal, I require your organization's details.
 `;
 
 export async function askWebsite({
@@ -62,19 +47,14 @@ export async function askWebsite({
 }): Promise<ReadableStream<string>> {
   const geminiApiKey = process.env.GEMINI_API_KEY;
 
-  if (!geminiApiKey) {
-    const stream = new ReadableStream<string>({
-      start(controller) {
-        controller.enqueue("**Protocol Error:** `GEMINI_API_KEY` is not configured. The chatbot is currently non-operational.");
-        controller.close();
-      },
-    });
-    return stream;
-  }
-
-  // This ReadableStream will handle the streaming of the response
   const stream = new ReadableStream<string>({
     async start(controller) {
+      if (!geminiApiKey) {
+        controller.enqueue("**Protocol Error:** `GEMINI_API_KEY` is not configured. The chatbot is currently non-operational.");
+        controller.close();
+        return;
+      }
+      
       try {
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const model = genAI.getGenerativeModel({
@@ -84,20 +64,59 @@ export async function askWebsite({
 
         const result = await model.generateContentStream(question);
 
-        // Stream the response chunks
         for await (const chunk of result.stream) {
           const chunkText = chunk.text();
           controller.enqueue(chunkText);
         }
-        controller.close();
       } catch (e: any) {
         console.error("Gemini API Error:", e);
-        // Stream a detailed error message to the client
-        controller.enqueue(`**Protocol Error:** An operational error occurred with the AI service. Please verify your API key and configuration. Details: ${e.message}`);
+        controller.enqueue(`**Protocol Error:** A critical error occurred with the AI service. Please check your API key and configuration.\n\n**Details:** ${e.message || 'Unknown error'}`);
+      } finally {
         controller.close();
       }
     },
   });
 
   return stream;
+}
+
+export async function textToSpeech({ text }: { text: string }): Promise<{audioBase64: string | null; error: string | null}> {
+  const geminiApiKey = process.env.GEMINI_API_KEY;
+
+  if (!geminiApiKey) {
+    return { audioBase64: null, error: "GEMINI_API_KEY is not configured." };
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/text:synthesizeSpeech?key=${geminiApiKey}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        input: { text },
+        voice: {
+          languageCode: 'en-US',
+          name: 'en-US-News-K',
+        },
+        audioConfig: {
+          audioEncoding: 'MP3',
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json();
+      console.error('TTS API Error:', errorBody);
+      throw new Error(errorBody.error.message || 'Failed to generate speech.');
+    }
+
+    const data = await response.json();
+    return { audioBase64: data.audioContent, error: null };
+  } catch (e: any) {
+    console.error("TTS Error:", e);
+    return { audioBase64: null, error: e.message || 'An unknown error occurred.' };
+  }
 }

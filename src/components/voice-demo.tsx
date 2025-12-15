@@ -1,162 +1,189 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useVapi, type CallStatus } from "@/hooks/use-vapi";
-import { cn } from "@/lib/utils";
-import { Mic, MicOff, PhoneOff, CircleDotDashed, AlertTriangle } from "lucide-react";
-import { useEffect, useRef } from "react";
-import * as Tone from "tone";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Mic, MicOff, Square, LoaderCircle, AlertTriangle } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { textToSpeech, askWebsite } from "@/app/actions";
 
-const WaveformVisualizer = ({ analyser, speaker }: { analyser: Tone.Analyser | null, speaker: 'user' | 'bot' | null }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+type VoiceStatus = "idle" | "listening" | "processing" | "speaking" | "error";
+
+export function VoiceDemo() {
+  const [status, setStatus] = useState<VoiceStatus>("idle");
+  const [lastTranscript, setLastTranscript] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    let animationFrameId: number;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
 
-    const draw = () => {
-      animationFrameId = requestAnimationFrame(draw);
-      if (!canvasRef.current || !analyser) return;
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setLastTranscript(transcript);
+        handleUserSpeech(transcript);
+      };
 
-      const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
-      if (!context) return;
-
-      const values = analyser.getValue();
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error", event.error);
+        setError(`Speech recognition error: ${event.error}. Please ensure microphone access is granted.`);
+        setStatus("error");
+      };
       
-      let color = speaker === 'bot' ? 'hsl(var(--accent))' : "hsl(var(--primary))";
-
-      context.lineWidth = 2;
-      context.strokeStyle = color;
-      context.beginPath();
-
-      const sliceWidth = (canvas.width * 1.0) / values.length;
-      let x = 0;
-
-      for (let i = 0; i < values.length; i++) {
-        const v = (values[i] as number) / 2.0;
-        const y = (v * canvas.height) / 2 + canvas.height / 2;
-
-        if (i === 0) {
-          context.moveTo(x, y);
-        } else {
-          context.lineTo(x, y);
+      recognition.onend = () => {
+        if (status === 'listening') {
+          setStatus("idle");
         }
-        x += sliceWidth;
-      }
+      };
 
-      context.lineTo(canvas.width, canvas.height / 2);
-      context.stroke();
-    };
-
-    if (analyser) {
-      draw();
+      recognitionRef.current = recognition;
+    } else {
+      setError("Speech recognition is not supported in this browser.");
+      setStatus("error");
     }
+  }, [status]);
+  
+  const handleUserSpeech = async (transcript: string) => {
+      setStatus("processing");
+      let fullTextResponse = "";
 
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [analyser, speaker]);
+      try {
+        const stream = await askWebsite({ question: transcript });
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
 
-  return <canvas ref={canvasRef} className="w-full h-full" />;
-};
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          fullTextResponse += decoder.decode(value, { stream: true });
+        }
+        
+        if (fullTextResponse) {
+          const { audioBase64, error: ttsError } = await textToSpeech({ text: fullTextResponse });
+          if (ttsError || !audioBase64) {
+            throw new Error(ttsError || "Failed to generate audio.");
+          }
 
-interface VoiceDemoProps {
-  vapiPublicKey?: string;
-  vapiAssistantId?: string;
-}
+          const audioSrc = `data:audio/mp3;base64,${audioBase64}`;
+          const audio = new Audio(audioSrc);
+          audioRef.current = audio;
 
-export function VoiceDemo({ vapiPublicKey, vapiAssistantId }: VoiceDemoProps) {
-  const { callStatus, isSpeechActive, speaker, start, stop, analyser, error } = useVapi({publicKey: vapiPublicKey, assistantId: vapiAssistantId});
+          audio.onplay = () => setStatus("speaking");
+          audio.onended = () => setStatus("idle");
+          audio.onerror = () => {
+            setError("Failed to play audio response.");
+            setStatus("error");
+          };
+          audio.play();
 
-  const getButtonContent = (status: CallStatus) => {
+        } else {
+          throw new Error("Received an empty response from the AI.");
+        }
+
+      } catch (e: any) {
+        console.error("Voice demo error:", e);
+        setError(e.message || "An unexpected error occurred.");
+        setStatus("error");
+      }
+  };
+
+
+  const handleButtonClick = () => {
+    if (status === "idle") {
+      recognitionRef.current?.start();
+      setStatus("listening");
+    } else if (status === "listening") {
+      recognitionRef.current?.stop();
+      setStatus("idle");
+    } else if (status === 'speaking') {
+      audioRef.current?.pause();
+      setStatus('idle');
+    }
+  };
+
+  const getButtonContent = () => {
     switch (status) {
+      case "listening":
+        return (
+          <>
+            <Mic className="h-12 w-12" />
+            <span className="text-xl font-bold tracking-wider">LISTENING...</span>
+          </>
+        );
+      case "processing":
+        return (
+          <>
+            <LoaderCircle className="h-12 w-12 animate-spin" />
+            <span className="text-xl font-bold tracking-wider">PROCESSING</span>
+          </>
+        );
+      case "speaking":
+        return (
+          <>
+            <Square className="h-12 w-12" />
+            <span className="text-xl font-bold tracking-wider">STOP</span>
+          </>
+        );
+      case "error":
+         return (
+          <>
+            <AlertTriangle className="h-12 w-12" />
+            <span className="text-xl font-bold tracking-wider">ERROR</span>
+          </>
+        );
       case "idle":
+      default:
         return (
           <>
             <Mic className="h-12 w-12" />
             <span className="text-xl font-bold tracking-wider">ACTIVATE MIC</span>
           </>
         );
-      case "connecting":
-        return (
-          <>
-            <CircleDotDashed className="h-12 w-12 animate-spin" />
-            <span className="text-xl font-bold tracking-wider">CONNECTING...</span>
-          </>
-        );
-      case "active":
-        return (
-          <>
-            <PhoneOff className="h-12 w-12" />
-            <span className="text-xl font-bold tracking-wider">END CALL</span>
-          </>
-        );
-      case "ended":
-        return (
-          <>
-            <MicOff className="h-12 w-12" />
-            <span className="text-xl font-bold tracking-wider">CALL ENDED</span>
-          </>
-        );
+    }
+  };
+
+  const getButtonClassName = () => {
+     switch (status) {
+      case "listening":
+        return "border-destructive/80 bg-destructive/20 text-destructive-foreground animate-pulse";
+      case "processing":
+        return "border-accent/80 bg-accent/20 text-accent cursor-not-allowed";
+      case "speaking":
+        return "border-accent/80 bg-accent/20 text-accent-foreground";
       case "error":
-        return (
-            <>
-                <AlertTriangle className="h-12 w-12" />
-                <span className="text-xl font-bold tracking-wider">ERROR</span>
-            </>
-        )
+        return "border-destructive/80 bg-destructive/20 text-destructive-foreground cursor-not-allowed";
+      case "idle":
+      default:
+        return "border-accent bg-accent/20 text-accent hover:bg-accent/30";
     }
-  };
-
-  const handleButtonClick = () => {
-    if (callStatus === "active" || callStatus === "connecting") {
-      stop();
-    } else {
-      start();
-    }
-  };
-  
-  if (error) {
-    return (
-        <div className="flex flex-col h-[60vh] items-center justify-center bg-black/5 dark:bg-black/50 border border-destructive/50 rounded-lg p-4 gap-4 text-center">
-            <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Voice Agent Error</AlertTitle>
-                <AlertDescription>
-                    {error}
-                </AlertDescription>
-            </Alert>
-        </div>
-    )
   }
-
 
   return (
     <div className="flex flex-col h-[60vh] items-center justify-center bg-black/5 dark:bg-black/50 border border-accent/20 rounded-lg p-4 gap-8">
-      <p className="text-muted-foreground text-center">Experience real-time accent-agnostic voice AI.</p>
-      <div className="relative w-full h-32">
-        {(callStatus === 'active') && <WaveformVisualizer analyser={analyser} speaker={speaker} />}
+      <div className="h-12 text-center text-muted-foreground">
+        {status === 'error' && <p className="text-destructive max-w-sm">{error}</p>}
+        {lastTranscript && status !== 'error' && (
+          <>
+            <p className="text-xs">You said:</p>
+            <p className="font-code text-accent">&quot;{lastTranscript}&quot;</p>
+          </>
+        )}
       </div>
+
       <Button
         onClick={handleButtonClick}
-        className={cn(
-            "relative flex flex-col items-center justify-center w-64 h-64 rounded-full border-4 transition-all duration-300 ease-in-out font-code",
-            "disabled:pointer-events-none",
-            callStatus === 'connecting' && 'animate-pulse border-accent/80 bg-accent/20 text-accent',
-            callStatus === 'active' && 'border-destructive/80 bg-destructive/20 text-destructive-foreground hover:bg-destructive/30',
-            callStatus === 'idle' && 'border-accent bg-accent/20 text-accent hover:bg-accent/30',
-            callStatus === 'ended' && 'border-muted-foreground bg-muted/20 text-muted-foreground',
-            callStatus === 'error' && 'border-destructive/80 bg-destructive/20 text-destructive-foreground'
-        )}
-        disabled={callStatus === "ended" || callStatus === "error"}
+        className={`relative flex flex-col items-center justify-center w-64 h-64 rounded-full border-4 transition-all duration-300 ease-in-out font-code ${getButtonClassName()}`}
+        disabled={status === "processing" || status === "error"}
       >
-        {getButtonContent(callStatus)}
+        {getButtonContent()}
       </Button>
-      <p className="text-muted-foreground h-4 text-accent">
-        {callStatus === 'active' ? (isSpeechActive ? (speaker === 'bot' ? "AI is speaking..." : "You are speaking...") : "Listening...") : ""}
+
+      <p className="h-4 text-muted-foreground">
+        {status === 'listening' ? "Feel free to speak now." : status === 'speaking' ? "Agent is responding..." : "Click the button to start."}
       </p>
     </div>
   );

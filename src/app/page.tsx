@@ -12,8 +12,6 @@ import { LeadershipSection } from "@/components/sections/leadership";
 import { Footer } from "@/components/sections/footer";
 
 export default function Home() {
-  const vapiPublicKey = process.env.VAPI_PUBLIC_API_KEY;
-  const vapiAssistantId = process.env.VAPI_ASSISTANT_ID;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
@@ -22,10 +20,7 @@ export default function Home() {
       <TrustTickerSection />
       <AgitationSection />
       <SolutionOverviewSection />
-      <ExperienceZoneSection 
-        vapiPublicKey={vapiPublicKey}
-        vapiAssistantId={vapiAssistantId}
-      />
+      <ExperienceZoneSection />
       <BlueprintSection />
       <CaseStudiesSection />
       <LeadershipSection />
