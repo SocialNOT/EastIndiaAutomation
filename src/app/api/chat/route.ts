@@ -1,7 +1,5 @@
 import {
   GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
 } from '@google/generative-ai';
 
 export const runtime = 'edge';
@@ -45,10 +43,17 @@ async function* streamGoogleAI(question: string, apiKey: string) {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: 'gemini-1.5-flash',
-    systemInstruction,
   });
 
-  const result = await model.generateContentStream(question);
+  const result = await model.generateContentStream({
+      contents: [
+          { role: "user", parts: [{ text: question }] }
+      ],
+      systemInstruction: {
+          parts: [{ text: systemInstruction }]
+      }
+  });
+
   for await (const chunk of result.stream) {
     const chunkText = chunk.text();
     yield chunkText;
