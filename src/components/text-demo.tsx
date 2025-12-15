@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, User, CornerDownLeft } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { BotAvatar } from "./chat/bot-avatar";
 
 type Message = {
   role: "user" | "bot";
@@ -90,7 +91,7 @@ export function TextDemo() {
         <div className="flex flex-col gap-4">
           {messages.length === 0 && (
               <div className="flex items-start gap-3">
-                <Bot className="text-primary h-5 w-5 flex-shrink-0" />
+                <BotAvatar />
                 <div className="flex flex-col">
                     <span className="font-bold text-primary text-sm">EIA Protocol Agent</span>
                     <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">Welcome to East India Automation. I am the automated Protocol Agent. How may I direct your inquiry regarding our AI infrastructure services?</p>
@@ -99,7 +100,7 @@ export function TextDemo() {
           )}
           {messages.map((m, i) => (
             <div key={i} className="flex items-start gap-3">
-              {m.role === 'bot' ? <Bot className="text-primary h-5 w-5 flex-shrink-0" /> : <User className="text-accent h-5 w-5 flex-shrink-0" />}
+              {m.role === 'bot' ? <BotAvatar /> : <User className="text-accent h-5 w-5 flex-shrink-0" />}
               <div className="flex flex-col">
                 <span className={`font-bold text-sm ${m.role === 'bot' ? 'text-primary' : 'text-accent'}`}>{m.role === 'bot' ? 'EIA Protocol Agent' : 'Operator'}</span>
                 <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">{m.message}{i === messages.length - 1 && isPending && m.role === 'bot' ? '...' : ''}</p>
