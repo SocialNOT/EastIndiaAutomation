@@ -65,47 +65,39 @@ export async function askWebsite({
   if (!geminiApiKey) {
     const stream = new ReadableStream<string>({
       start(controller) {
-        controller.enqueue("Error: `GEMINI_API_KEY` is not configured. The chatbot is currently non-operational.");
+        controller.enqueue("**Protocol Error:** `GEMINI_API_KEY` is not configured. The chatbot is currently non-operational.");
         controller.close();
       },
     });
     return stream;
   }
 
-  try {
-    const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      systemInstruction,
-    });
+  // This ReadableStream will handle the streaming of the response
+  const stream = new ReadableStream<string>({
+    async start(controller) {
+      try {
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
+        const model = genAI.getGenerativeModel({
+          model: 'gemini-1.5-flash',
+          systemInstruction,
+        });
 
-    const result = await model.generateContentStream(question);
+        const result = await model.generateContentStream(question);
 
-    const stream = new ReadableStream<string>({
-      async start(controller) {
-        try {
-            for await (const chunk of result.stream) {
-              const chunkText = chunk.text();
-              controller.enqueue(chunkText);
-            }
-            controller.close();
-        } catch (e: any) {
-            console.error("Streaming Error:", e);
-            controller.enqueue(`\n\n**Protocol Error:** An error occurred while generating the response: ${e.message}`);
-            controller.close();
+        // Stream the response chunks
+        for await (const chunk of result.stream) {
+          const chunkText = chunk.text();
+          controller.enqueue(chunkText);
         }
-      },
-    });
-    return stream;
-
-  } catch(e: any) {
-     const stream = new ReadableStream<string>({
-      start(controller) {
+        controller.close();
+      } catch (e: any) {
         console.error("Gemini API Error:", e);
+        // Stream a detailed error message to the client
         controller.enqueue(`**Protocol Error:** An operational error occurred with the AI service. Please verify your API key and configuration. Details: ${e.message}`);
         controller.close();
-      },
-    });
-    return stream;
-  }
+      }
+    },
+  });
+
+  return stream;
 }
