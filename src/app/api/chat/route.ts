@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai';
+import { GoogleGenerativeAIStream, StreamingTextResponse, Message } from 'ai';
 
 export const runtime = 'edge';
 
@@ -37,6 +37,38 @@ If a user shows interest or asks a question you cannot answer, pivot immediately
 "To address that specific requirement, a consultation with our engineering team is necessary. Please provide your official email address so I may schedule a briefing."
 `;
 
+// Function to build the prompt with system instructions
+const buildPrompt = (messages: Message[]) => {
+  const history = messages.map(message => ({
+    role: message.role === 'user' ? 'user' : 'model',
+    parts: [{ text: message.content }],
+  }));
+
+  // The first message should contain the system instruction.
+  // We will inject it before the first user message.
+  const firstUserIndex = history.findIndex(m => m.role === 'user');
+
+  if (firstUserIndex !== -1) {
+    const systemMessage = {
+      role: 'user',
+      parts: [{ text: systemInstruction }],
+    };
+    const modelPreamble = {
+      role: 'model',
+      parts: [{ text: 'Understood. I am the EIA Protocol Agent. I will adhere to all directives.' }],
+    }
+    history.splice(firstUserIndex, 0, systemMessage, modelPreamble);
+  } else {
+     // If there are no user messages, we can't inject the system prompt properly.
+     // This is a fallback.
+     const lastMessage = history[history.length - 1];
+     if (lastMessage) {
+       lastMessage.parts[0].text = systemInstruction + '\n\n' + lastMessage.parts[0].text;
+     }
+  }
+  return history;
+};
+
 export async function POST(req: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -44,35 +76,25 @@ export async function POST(req: Request) {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  // Corrected model name to the stable, available 'gemini-pro'
+  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
   
   try {
     const { messages } = await req.json();
+    
+    // Use the buildPrompt function to inject the system instruction
+    const contents = buildPrompt(messages);
 
-    const chatHistory = messages.map((message: any) => ({
-        role: message.role === 'user' ? 'user' : 'model',
-        parts: [{ text: message.content }],
-    }));
-
-    // Remove the last message from history as it's the current user query
-    const currentUserQuery = chatHistory.pop();
-    if (!currentUserQuery) {
-      return new Response('No user message provided.', { status: 400 });
-    }
-
-    const result = await model.generateContentStream({
-        contents: [
-            ...chatHistory,
-            // System instruction should be passed with the user query
-            { role: 'user', parts: [{ text: systemInstruction + "\n\n" + currentUserQuery.parts[0].text }]}
-        ]
-    });
+    const result = await model.generateContentStream({ contents });
     
     const stream = GoogleGenerativeAIStream(result);
 
     return new StreamingTextResponse(stream);
   } catch (error: any) {
     console.error('[EIA_CHAT_API_ERROR]', error);
-    return new Response(`**Protocol Error:** A server-side error occurred.\n\n**Details:** ${error.message || 'Unknown error'}`, { status: 500 });
+    // Return a structured error message
+    const errorMessage = error.message || 'An unknown error occurred.';
+    const errorDetails = error.stack || 'No stack trace available.';
+    return new Response(`**Protocol Error:** A server-side error occurred.\n\n**Details:** ${errorMessage}\n\n${errorDetails}`, { status: 500 });
   }
 }
