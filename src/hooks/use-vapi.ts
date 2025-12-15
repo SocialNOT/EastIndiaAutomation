@@ -18,14 +18,44 @@ export const useVapi = () => {
     const initializeVapi = async () => {
       const VapiModule = (await import("@vapi-ai/web")).default;
       const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-      
-      if (publicKey && publicKey !== "YOUR_VAPI_PUBLIC_KEY_HERE") {
-        setVapiInstance(new VapiModule(publicKey));
-      } else {
-        setError("VAPI public key is missing. Please add NEXT_PUBLIC_VAPI_PUBLIC_KEY to your .env.local file.");
+      const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+
+      if (!publicKey || publicKey === "YOUR_VAPI_PUBLIC_KEY_HERE") {
+        setError("VAPI public key is not configured. Please add NEXT_PUBLIC_VAPI_PUBLIC_KEY to your environment file.");
         setCallStatus("error");
+        return;
       }
+       if (!assistantId || assistantId === "YOUR_VAPI_ASSISTANT_ID_HERE") {
+        setError("VAPI assistant ID is not configured. Please add NEXT_PUBLIC_VAPI_ASSISTANT_ID to your environment file.");
+        setCallStatus("error");
+        return;
+      }
+
+      const vapi = new VapiModule(publicKey);
+      setVapiInstance(vapi);
+
+      vapi.on("call-start", () => setCallStatus("active"));
+      vapi.on("call-end", () => {
+        setCallStatus("ended");
+        analyser?.dispose();
+        setAnalyser(null);
+      });
+      vapi.on("speech-start", (payload: any) => {
+          setIsSpeechActive(true);
+          setSpeaker(payload.role === 'assistant' ? 'bot' : 'user');
+      });
+      vapi.on("speech-end", () => {
+          setIsSpeechActive(false);
+          setSpeaker(null);
+      });
+      vapi.on("error", (e: any) => {
+        const errorMessage = e?.message || "An unknown Vapi error occurred.";
+        setError(errorMessage);
+        console.error(e);
+        setCallStatus("error");
+      });
     };
+
     initializeVapi();
 
     return () => {
@@ -34,22 +64,14 @@ export const useVapi = () => {
         return null;
       });
     };
-  }, []); 
+  }, [analyser]);
 
 
   const start = useCallback(async () => {
-    if (!vapiInstance) {
-        setError("Vapi is not initialized.");
-        setCallStatus("error");
-        return;
-    };
+    if (!vapiInstance) return;
+    
     setCallStatus("connecting");
     const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
-    if (!assistantId || assistantId === "YOUR_VAPI_ASSISTANT_ID_HERE") {
-        setError("VAPI assistant ID is missing. Please add NEXT_PUBLIC_VAPI_ASSISTANT_ID to your .env.local file.");
-        setCallStatus("error");
-        return;
-    }
 
     try {
         const Tone = await import('tone');
@@ -73,7 +95,7 @@ export const useVapi = () => {
 
     } catch (e) {
         console.error("Error starting Vapi call or Tone.js:", e);
-        setError("Failed to start audio session.");
+        setError("Failed to start audio session. Please check microphone permissions.");
         setCallStatus("error");
     }
 
@@ -84,45 +106,6 @@ export const useVapi = () => {
     setCallStatus("ended");
     vapiInstance.stop();
   }, [vapiInstance]);
-
-  useEffect(() => {
-    if (!vapiInstance) return;
-
-    const onCallStart = () => setCallStatus("active");
-    const onCallEnd = () => {
-      setCallStatus("ended");
-      analyser?.dispose();
-      setAnalyser(null);
-    };
-    const onSpeechStart = (payload: any) => {
-        setIsSpeechActive(true);
-        setSpeaker(payload.role === 'assistant' ? 'bot' : 'user');
-    };
-    const onSpeechEnd = () => {
-        setIsSpeechActive(false);
-        setSpeaker(null);
-    };
-    const onError = (e: any) => {
-      const errorMessage = e?.message || "An unknown Vapi error occurred.";
-      setError(errorMessage);
-      console.error(e);
-      setCallStatus("error");
-    };
-
-    vapiInstance.on("call-start", onCallStart);
-    vapiInstance.on("call-end", onCallEnd);
-    vapiInstance.on("speech-start", onSpeechStart);
-    vapiInstance.on("speech-end", onSpeechEnd);
-    vapiInstance.on("error", onError);
-
-    return () => {
-      vapiInstance.off("call-start", onCallStart);
-      vapiInstance.off("call-end", onCallEnd);
-      vapiInstance.off("speech-start", onSpeechStart);
-      vapiInstance.off("speech-end", onSpeechEnd);
-      vapiInstance.off("error", onError);
-    };
-  }, [vapiInstance, analyser]);
 
   return { callStatus, isSpeechActive, speaker, analyser, error, start, stop };
 };
