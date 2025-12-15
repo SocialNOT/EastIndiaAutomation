@@ -1,4 +1,4 @@
-import { BrainCircuit, Waves, Server, Cog, ArrowRight } from "lucide-react";
+import { BrainCircuit, Waves, Server, Cog } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface PillarProps {
@@ -32,10 +32,10 @@ const pillarsData: PillarProps[] = [
 
 function PillarCard({ icon: Icon, title, description }: PillarProps) {
   return (
-    <div className="p-6 border-2 border-primary/20 bg-card/30 transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_20px_hsl(var(--primary),0.3)] rounded-lg flex flex-col gap-4">
+    <div className="p-6 border border-primary/20 bg-card/30 transition-all duration-300 hover:border-primary/50 hover:bg-card/50 hover:shadow-[0_0_20px_hsl(var(--primary),0.2)] rounded-lg flex flex-col gap-4 text-left">
         <Icon className="h-10 w-10 text-primary" />
-        <h3 className="font-headline text-2xl">{title}</h3>
-      <p className="text-muted-foreground flex-grow">{description}</p>
+        <h3 className="font-headline text-2xl !leading-tight">{title}</h3>
+        <p className="text-muted-foreground flex-grow">{description}</p>
     </div>
   );
 }
@@ -43,15 +43,15 @@ function PillarCard({ icon: Icon, title, description }: PillarProps) {
 
 export function SolutionOverviewSection() {
     return (
-      <section id="solution" className="w-full py-20 md:py-32">
+      <section id="solution" className="w-full py-16 md:py-24">
         <div className="container mx-auto px-4">
-            <div className="text-center max-w-4xl mx-auto mb-12">
-              <h2 className="font-headline text-4xl md:text-5xl mb-6">Our Global AI Infrastructure.</h2>
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <h2 className="font-headline text-4xl md:text-5xl mb-4 !leading-tight">Our Global AI Infrastructure.</h2>
               <p className="text-lg md:text-xl text-muted-foreground">
                 Built on a foundation of registered Indian engineering expertise and scalable cloud architecture.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                 {pillarsData.map((pillar) => (
                     <PillarCard key={pillar.title} {...pillar} />
                 ))}

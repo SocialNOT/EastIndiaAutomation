@@ -10,12 +10,12 @@ interface AgitationCardProps {
 
 function AgitationCard({ icon: Icon, title, description }: AgitationCardProps) {
   return (
-    <Card className="bg-transparent border-none shadow-none text-secondary-foreground">
-      <CardHeader className="flex flex-row items-center gap-4">
+    <Card className="bg-transparent border-none shadow-none text-secondary-foreground text-left md:text-center">
+      <CardHeader className="flex flex-col items-start md:items-center gap-4 p-4">
         <Icon className="h-10 w-10 text-primary" />
-        <CardTitle className="font-headline text-2xl">{title}</CardTitle>
+        <CardTitle className="font-headline text-2xl md:text-3xl">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-0">
         <p className="text-secondary-foreground/80">{description}</p>
       </CardContent>
     </Card>
@@ -42,10 +42,10 @@ export function AgitationSection() {
   ];
 
   return (
-    <section id="agitation" className="w-full py-20 md:py-32 bg-secondary">
+    <section id="agitation" className="w-full py-16 md:py-24 bg-secondary">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="font-headline text-4xl md:text-5xl text-secondary-foreground">Your Operations Are Bleeding Efficiency.</h2>
+        <div className="text-center mb-12 max-w-3xl mx-auto">
+          <h2 className="font-headline text-4xl md:text-5xl text-secondary-foreground !leading-tight">Your Operations Are Bleeding Efficiency.</h2>
           <p className="text-lg md:text-xl text-secondary-foreground/80 mt-4">The 24/7 Global Market Never Sleeps. Your Operations Shouldn't Either.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

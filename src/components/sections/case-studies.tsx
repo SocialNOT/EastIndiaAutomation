@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 
 const studies = [
     {
@@ -27,16 +28,16 @@ const studies = [
 
 export function CaseStudiesSection() {
   return (
-    <section id="case-studies" className="w-full py-20 md:py-32">
+    <section id="case-studies" className="w-full py-16 md:py-24">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="font-headline text-4xl md:text-5xl">Proven International Implementations</h2>
-          <p className="text-lg text-muted-foreground mt-4 tracking-widest font-code">TRUSTED BY ENTERPRISES IN: USA | UAE | UK | SINGAPORE | INDIA</p>
+        <div className="text-center mb-12 max-w-3xl mx-auto">
+          <h2 className="font-headline text-4xl md:text-5xl !leading-tight">Proven International Implementations</h2>
+          <p className="text-sm text-muted-foreground mt-4 tracking-widest font-code">TRUSTED BY ENTERPRISES IN: USA | UAE | UK | SINGAPORE | INDIA</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {studies.map(study => (
-                <Card key={study.id} className="overflow-hidden bg-card/50 group border-2 border-transparent hover:border-primary/50 transition-all duration-300">
-                    <div className="relative h-64 w-full">
+                <Card key={study.id} className="overflow-hidden bg-card/30 group border border-transparent hover:border-primary/50 transition-all duration-300 flex flex-col">
+                    <div className="relative h-56 w-full">
                          <Image 
                             src={study.image.url}
                             alt={study.title}
@@ -46,13 +47,13 @@ export function CaseStudiesSection() {
                          />
                          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
                     </div>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-2xl">{study.title}</CardTitle>
-                        <CardDescription>{study.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Button variant="link" className="text-primary p-0 group-hover:underline">Read Case Study</Button>
-                    </CardContent>
+                    <div className="p-6 flex flex-col flex-grow">
+                        <h3 className="font-headline text-2xl !leading-tight mb-2">{study.title}</h3>
+                        <p className="text-muted-foreground mb-4 flex-grow">{study.description}</p>
+                         <Button variant="link" className="text-primary p-0 group-hover:underline self-start font-bold">
+                            Read Case Study <ArrowRight className="ml-2 h-4 w-4" />
+                         </Button>
+                    </div>
                 </Card>
             ))}
         </div>
