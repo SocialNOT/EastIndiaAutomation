@@ -1,4 +1,3 @@
-'use server';
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleGenerativeAIStream, StreamingTextResponse, Message } from 'ai';
@@ -8,7 +7,12 @@ export const runtime = 'edge';
 export async function POST(req: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return new Response('**Protocol Error:** `GEMINI_API_KEY` is not configured on the server.', { status: 500 });
+    return new Response(JSON.stringify({ 
+      error: `**Protocol Error:** \`GEMINI_API_KEY\` is not configured on the server.` 
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
@@ -16,7 +20,6 @@ export async function POST(req: Request) {
   try {
     const { messages, systemInstruction } = await req.json();
     
-    // Using gemini-pro as it's the stable model for this kind of task.
     const model = genAI.getGenerativeModel({ 
       model: 'gemini-pro',
       systemInstruction: {
@@ -26,7 +29,7 @@ export async function POST(req: Request) {
     });
 
     const stream = await model.generateContentStream({
-      contents: messages.map((m: Message) => ({
+      contents: messages.filter((m: Message) => m.role !== 'system' && m.role !== 'assistant' || m.content !== 'Welcome to East India Automation. I am the automated Protocol Agent. How may I direct your inquiry regarding our AI infrastructure services?').map((m: Message) => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content }],
       })),
