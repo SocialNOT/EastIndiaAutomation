@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const { messages, systemInstruction } = await req.json();
     
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-pro',
+      model: 'gemini-2.5-pro',
       systemInstruction: {
         role: 'model',
         parts: [{ text: systemInstruction }],
