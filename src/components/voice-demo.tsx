@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Square, LoaderCircle, AlertTriangle } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { Mic, MicOff, Square, LoaderCircle, AlertTriangle, ShieldAlert } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { textToSpeech, askWebsite } from "@/app/actions";
 
-type VoiceStatus = "idle" | "listening" | "processing" | "speaking" | "error";
+type VoiceStatus = "idle" | "permission_denied" | "permission_pending" | "listening" | "processing" | "speaking" | "error";
 
 export function VoiceDemo() {
   const [status, setStatus] = useState<VoiceStatus>("idle");
@@ -14,41 +14,54 @@ export function VoiceDemo() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
+  const initializeRecognition = useCallback(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'en-US';
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setLastTranscript(transcript);
-        handleUserSpeech(transcript);
-      };
-
-      recognition.onerror = (event) => {
-        console.error("Speech recognition error", event.error);
-        setError(`Speech recognition error: ${event.error}. Please ensure microphone access is granted.`);
-        setStatus("error");
-      };
-      
-      recognition.onend = () => {
-        if (status === 'listening') {
-          setStatus("idle");
-        }
-      };
-
-      recognitionRef.current = recognition;
-    } else {
+    if (!SpeechRecognition) {
       setError("Speech recognition is not supported in this browser.");
       setStatus("error");
+      return;
     }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setLastTranscript(transcript);
+      handleUserSpeech(transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error", event.error);
+      let errorMessage = `Speech recognition error: ${event.error}.`;
+      if (event.error === 'not-allowed') {
+        errorMessage = "Microphone access was denied. Please enable it in your browser settings to use the voice channel.";
+        setStatus("permission_denied");
+      } else if (event.error === 'no-speech') {
+        errorMessage = "No speech was detected. Please try speaking again.";
+      }
+      setError(errorMessage);
+      setStatus("error");
+    };
+    
+    recognition.onend = () => {
+      if (status === 'listening') {
+        setStatus("idle");
+      }
+    };
+
+    recognitionRef.current = recognition;
   }, [status]);
   
+  useEffect(() => {
+    initializeRecognition();
+  }, [initializeRecognition]);
+
   const handleUserSpeech = async (transcript: string) => {
       setStatus("processing");
+      setError(null);
       let fullTextResponse = "";
 
       try {
@@ -91,19 +104,44 @@ export function VoiceDemo() {
       }
   };
 
+  const handleButtonClick = async () => {
+    setError(null);
 
-  const handleButtonClick = () => {
-    if (status === "idle") {
-      recognitionRef.current?.start();
+    if (status === 'speaking' && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setStatus('idle');
+        return;
+    }
+
+    if (status === 'listening' && recognitionRef.current) {
+        recognitionRef.current.stop();
+        setStatus('idle');
+        return;
+    }
+
+    // Check permissions first
+    try {
+      const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      if (permissionStatus.state === 'denied') {
+        setError("Microphone access was denied. Please enable it in your browser settings to use the voice channel.");
+        setStatus('permission_denied');
+        return;
+      }
+    } catch (err) {
+      console.error("Could not check microphone permissions:", err);
+    }
+    
+    // If we are here, we either have permission or it's 'prompt'
+    if (recognitionRef.current) {
       setStatus("listening");
-    } else if (status === "listening") {
-      recognitionRef.current?.stop();
-      setStatus("idle");
-    } else if (status === 'speaking') {
-      audioRef.current?.pause();
-      setStatus('idle');
+      recognitionRef.current.start();
+    } else {
+      setError("Speech recognition is not initialized.");
+      setStatus("error");
     }
   };
+
 
   const getButtonContent = () => {
     switch (status) {
@@ -112,6 +150,13 @@ export function VoiceDemo() {
           <>
             <Mic className="h-12 w-12" />
             <span className="text-xl font-bold tracking-wider">LISTENING...</span>
+          </>
+        );
+      case "permission_denied":
+        return (
+          <>
+            <MicOff className="h-12 w-12" />
+            <span className="text-xl font-bold tracking-wider">MIC DENIED</span>
           </>
         );
       case "processing":
@@ -155,18 +200,30 @@ export function VoiceDemo() {
       case "speaking":
         return "border-accent/80 bg-accent/20 text-accent-foreground";
       case "error":
+      case "permission_denied":
         return "border-destructive/80 bg-destructive/20 text-destructive-foreground cursor-not-allowed";
       case "idle":
       default:
         return "border-accent bg-accent/20 text-accent hover:bg-accent/30";
     }
   }
+  
+  const getHelperText = () => {
+    switch (status) {
+        case 'listening': return 'Feel free to speak now.';
+        case 'speaking': return 'Agent is responding...';
+        case 'permission_denied': return 'Enable mic access in browser settings.';
+        case 'error': return 'An error occurred. Please try again.';
+        case 'processing': return 'Thinking...';
+        default: return 'Click the button to start.';
+    }
+  }
 
   return (
     <div className="flex flex-col h-[60vh] items-center justify-center bg-black/5 dark:bg-black/50 border border-accent/20 rounded-lg p-4 gap-8">
       <div className="h-12 text-center text-muted-foreground">
-        {status === 'error' && <p className="text-destructive max-w-sm">{error}</p>}
-        {lastTranscript && status !== 'error' && (
+        {error && <p className="text-destructive max-w-sm">{error}</p>}
+        {lastTranscript && !error && (
           <>
             <p className="text-xs">You said:</p>
             <p className="font-code text-accent">&quot;{lastTranscript}&quot;</p>
@@ -177,13 +234,13 @@ export function VoiceDemo() {
       <Button
         onClick={handleButtonClick}
         className={`relative flex flex-col items-center justify-center w-64 h-64 rounded-full border-4 transition-all duration-300 ease-in-out font-code ${getButtonClassName()}`}
-        disabled={status === "processing" || status === "error"}
+        disabled={status === "processing" || status === "permission_denied"}
       >
         {getButtonContent()}
       </Button>
 
       <p className="h-4 text-muted-foreground">
-        {status === 'listening' ? "Feel free to speak now." : status === 'speaking' ? "Agent is responding..." : "Click the button to start."}
+        {getHelperText()}
       </p>
     </div>
   );
