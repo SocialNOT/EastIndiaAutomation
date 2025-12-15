@@ -13,7 +13,7 @@ export function ChatWidget() {
     <div className="fixed bottom-6 right-6 z-50">
       <div className={`transition-opacity duration-300 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <Button
-          size="lg"
+          size="icon"
           className="rounded-full w-16 h-16 shadow-lg hover:shadow-primary/50 transition-shadow"
           onClick={() => setIsOpen(true)}
           aria-label="Open Chat"
