@@ -1,4 +1,5 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai';
 
 export const runtime = 'edge';
 
@@ -36,54 +37,42 @@ If a user shows interest or asks a question you cannot answer, pivot immediately
 "To address that specific requirement, a consultation with our engineering team is necessary. Please provide your official email address so I may schedule a briefing."
 `;
 
-async function* streamGoogleAI(question: string, apiKey: string) {
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    systemInstruction: systemInstruction,
-  });
-
-  const result = await model.generateContentStream(question);
-
-  for await (const chunk of result.stream) {
-    const chunkText = chunk.text();
-    yield chunkText;
-  }
-}
-
-function iteratorToStream(iterator: AsyncGenerator<string>) {
-  return new ReadableStream({
-    async pull(controller) {
-      const { value, done } = await iterator.next();
-      if (done) {
-        controller.close();
-      } else {
-        controller.enqueue(new TextEncoder().encode(value));
-      }
-    },
-  });
-}
-
 export async function POST(req: Request) {
-  const { question } = await req.json();
   const apiKey = process.env.GEMINI_API_KEY;
-
   if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: "**Protocol Error:** `GEMINI_API_KEY` is not configured on the server. The chatbot is non-operational." }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response('**Protocol Error:** `GEMINI_API_KEY` is not configured on the server.', { status: 500 });
   }
 
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  
   try {
-    const iterator = streamGoogleAI(question, apiKey);
-    const stream = iteratorToStream(iterator);
-    return new Response(stream, {
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    const { messages } = await req.json();
+
+    const chatHistory = messages.map((message: any) => ({
+        role: message.role === 'user' ? 'user' : 'model',
+        parts: [{ text: message.content }],
+    }));
+
+    // Remove the last message from history as it's the current user query
+    const currentUserQuery = chatHistory.pop();
+    if (!currentUserQuery) {
+      return new Response('No user message provided.', { status: 400 });
+    }
+
+    const result = await model.generateContentStream({
+        contents: [
+            ...chatHistory,
+            // System instruction should be passed with the user query
+            { role: 'user', parts: [{ text: systemInstruction + "\n\n" + currentUserQuery.parts[0].text }]}
+        ]
     });
+    
+    const stream = GoogleGenerativeAIStream(result);
+
+    return new StreamingTextResponse(stream);
   } catch (error: any) {
-    console.error("Gemini API Error in Route Handler:", error);
-    const errorMessage = `**Protocol Error:** A critical error occurred with the AI service.\n\n**Details:** ${error.message || 'Unknown error'}`;
-    return new Response(JSON.stringify({ error: errorMessage }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    console.error('[EIA_CHAT_API_ERROR]', error);
+    return new Response(`**Protocol Error:** A server-side error occurred.\n\n**Details:** ${error.message || 'Unknown error'}`, { status: 500 });
   }
 }

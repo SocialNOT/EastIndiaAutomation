@@ -3,19 +3,22 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, User, CornerDownLeft } from "lucide-react";
-import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { User, CornerDownLeft } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { useChat } from "ai/react";
 import { BotAvatar } from "./chat/bot-avatar";
 
-type Message = {
-  role: "user" | "bot";
-  message: string;
-};
-
 export function TextDemo() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+    initialMessages: [
+      {
+        id: 'initial',
+        role: 'assistant',
+        content: 'Welcome to East India Automation. I am the automated Protocol Agent. How may I direct your inquiry regarding our AI infrastructure services?'
+      }
+    ]
+  });
+
   const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,93 +27,28 @@ export function TextDemo() {
     }
   }, [messages]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isPending) return;
-
-    const userMessage: Message = { role: "user", message: input };
-    setMessages(prev => [...prev, userMessage]);
-    const question = input;
-    setInput("");
-
-    startTransition(async () => {
-      const botMessage: Message = { role: 'bot', message: '' };
-      setMessages(prev => [...prev, botMessage]);
-
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'The connection to the AI service failed.');
-        }
-
-        if (!response.body) {
-            throw new Error("The response from the AI service was empty.");
-        }
-        
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullAnswer = "";
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            fullAnswer += chunk;
-            setMessages(prev => {
-                const newMessages = [...prev];
-                const lastMessage = newMessages[newMessages.length - 1];
-                if (lastMessage.role === "bot") {
-                    lastMessage.message = fullAnswer;
-                }
-                return newMessages;
-            });
-        }
-      } catch (error: any) {
-        console.error("Error streaming from API route:", error);
-        setMessages(prev => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage.role === "bot") {
-            lastMessage.message = `**Protocol Error:** A client-side error occurred while connecting to the AI service.\n\n**Details:** ${error.message || 'Unknown streaming error.'}`;
-          }
-          return newMessages;
-        });
-      }
-    });
-  };
-
   return (
     <div className="flex flex-col h-full bg-background rounded-lg font-code">
       <ScrollArea className="flex-1 w-full p-4" viewportRef={viewportRef}>
         <div className="flex flex-col gap-4">
-          {messages.length === 0 && (
-              <div className="flex items-start gap-3">
-                <BotAvatar />
-                <div className="flex flex-col">
-                    <span className="font-bold text-primary text-sm">EIA Protocol Agent</span>
-                    <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">Welcome to East India Automation. I am the automated Protocol Agent. How may I direct your inquiry regarding our AI infrastructure services?</p>
-                </div>
-              </div>
-          )}
-          {messages.map((m, i) => (
-            <div key={i} className="flex items-start gap-3">
-              {m.role === 'bot' ? <BotAvatar /> : <User className="text-accent h-5 w-5 flex-shrink-0" />}
+          {messages.map((m) => (
+            <div key={m.id} className="flex items-start gap-3">
+              {m.role === 'assistant' ? <BotAvatar /> : <User className="text-accent h-5 w-5 flex-shrink-0" />}
               <div className="flex flex-col">
-                <span className={`font-bold text-sm ${m.role === 'bot' ? 'text-primary' : 'text-accent'}`}>{m.role === 'bot' ? 'EIA Protocol Agent' : 'Operator'}</span>
-                <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">{m.message}{i === messages.length - 1 && isPending && m.role === 'bot' ? '...' : ''}</p>
+                <span className={`font-bold text-sm ${m.role === 'assistant' ? 'text-primary' : 'text-accent'}`}>{m.role === 'assistant' ? 'EIA Protocol Agent' : 'Operator'}</span>
+                <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">{m.content}</p>
               </div>
             </div>
           ))}
+           {error && (
+            <div className="flex items-start gap-3">
+              <BotAvatar />
+              <div className="flex flex-col">
+                <span className="font-bold text-sm text-destructive">Protocol Error</span>
+                <p className="text-destructive/80 text-sm whitespace-pre-wrap leading-relaxed">{error.message}</p>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
       <div className="p-4 border-t">
@@ -118,11 +56,11 @@ export function TextDemo() {
           <Input
             value={input}
             onChange={handleInputChange}
-            placeholder={isPending ? "Generating response..." : "Ask about our services..."}
+            placeholder={isLoading ? "Generating response..." : "Ask about our services..."}
             className="bg-background/50 border-primary/30 h-11 pr-12 text-sm"
-            disabled={isPending}
+            disabled={isLoading}
           />
-          <Button type="submit" size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-9" disabled={isPending || !input.trim()}>
+          <Button type="submit" size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-9" disabled={isLoading || !input.trim()}>
             <CornerDownLeft className="h-4 w-4" />
           </Button>
         </form>
