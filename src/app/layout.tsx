@@ -36,13 +36,13 @@ export default function RootLayout({
           <ModalProvider>
             {children}
             <LeadCaptureModal />
-            <SpeedInsights />
-            <Analytics />
           </ModalProvider>
           <Toaster />
           <CredibilityFooter />
           <ScrollToTop />
           <ChatWidget />
+          <SpeedInsights />
+          <Analytics />
         </Providers>
       </body>
     </html>
