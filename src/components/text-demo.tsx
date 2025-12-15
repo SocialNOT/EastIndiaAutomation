@@ -40,18 +40,18 @@ export function TextDemo() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: "user", message: input };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage, { role: 'bot', message: 'AI functionality is temporarily disabled.' }]);
     setInput("");
-    setIsLoading(true);
-
-    const botMessage: Message = { role: "bot", message: "This demo is temporarily disabled while we resolve a dependency issue." };
-    setMessages(prev => [...prev, botMessage]);
-    setIsLoading(false);
+    
+    // const userMessage: Message = { role: "user", message: input };
+    // setMessages(prev => [...prev, userMessage, { role: 'bot', message: '' }]);
+    // setInput("");
+    // setIsLoading(true);
 
     // try {
-    //   const {stream} = streamFlow(askWebsite, { question: input });
+    //   const {stream, response} = streamFlow(askWebsite, { question: input });
     //   for await (const chunk of stream) {
-    //     const output = chunk as WebsiteQAOutput | undefined;
+    //     const output = chunk.output as WebsiteQAOutput | undefined;
     //     if (output?.answer) {
     //       setMessages(prev => {
     //         const newMessages = [...prev];
@@ -63,14 +63,14 @@ export function TextDemo() {
     //       });
     //     }
     //   }
-
+    //   await response;
     // } catch (error) {
     //   console.error("Error streaming from AI flow:", error);
     //   setMessages(prev => {
     //     const newMessages = [...prev];
     //     const lastMessage = newMessages[newMessages.length - 1];
     //     if (lastMessage.role === "bot") {
-    //       lastMessage.message = "Sorry, I encountered an error. Please check your Gemini API key and try again.";
+    //       lastMessage.message = "An operational error occurred. Please verify your Gemini API key configuration and try again.";
     //     }
     //     return newMessages;
     //   });
@@ -87,7 +87,7 @@ export function TextDemo() {
             <div key={i} className="flex items-start gap-3">
               {m.role === 'bot' ? <Bot className="text-primary h-6 w-6" /> : <User className="text-accent h-6 w-6" />}
               <div className="flex flex-col">
-                <span className={`font-bold ${m.role === 'bot' ? 'text-primary' : 'text-accent'}`}>{m.role === 'bot' ? 'EIA-7B' : 'Operator'}</span>
+                <span className={`font-bold ${m.role === 'bot' ? 'text-primary' : 'text-accent'}`}>{m.role === 'bot' ? 'EIA Protocol Agent' : 'Operator'}</span>
                 <p className="text-muted-foreground whitespace-pre-wrap">{m.message}{i === messages.length - 1 && isLoading && m.role === 'bot' ? '...' : ''}</p>
               </div>
             </div>
@@ -96,8 +96,8 @@ export function TextDemo() {
               <div className="flex items-start gap-3">
                 <Bot className="text-primary h-6 w-6" />
                 <div className="flex flex-col">
-                    <span className="font-bold text-primary">EIA-7B</span>
-                    <p className="text-muted-foreground">Ask me anything about East India Automation. For example: "What services do you offer?"</p>
+                    <span className="font-bold text-primary">EIA Protocol Agent</span>
+                    <p className="text-muted-foreground">Welcome to East India Automation. I am the automated Protocol Agent. How may I direct your inquiry regarding our AI infrastructure services?</p>
                 </div>
               </div>
           )}
