@@ -19,8 +19,8 @@ const FeatureCard = ({ icon: Icon, title, description }: FeatureCardProps) => (
       <Icon className="h-6 w-6 text-primary" />
     </div>
     <div>
-      <h3 className="font-bold text-lg text-primary-foreground">{title}</h3>
-      <p className="text-primary-foreground/80">{description}</p>
+      <h3 className="font-bold text-lg text-foreground">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
     </div>
   </div>
 );
@@ -66,7 +66,7 @@ export function TextBotShowcase() {
               <CardContent className="p-8 space-y-6">
                 <div className="flex items-center gap-3">
                     <MessageSquare className="h-8 w-8 text-primary" />
-                    <h3 className="font-headline text-2xl text-primary-foreground">Key Capabilities</h3>
+                    <h3 className="font-headline text-2xl text-foreground">Key Capabilities</h3>
                 </div>
                 <div className="space-y-6">
                     {features.map((feature, index) => (
