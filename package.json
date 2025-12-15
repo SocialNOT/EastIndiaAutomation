@@ -50,7 +50,8 @@
     "tailwindcss-animate": "^1.0.0",
     "three": "^0.166.1",
     "tone": "^15.0.4",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@vercel/speed-insights": "^1.0.12"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",

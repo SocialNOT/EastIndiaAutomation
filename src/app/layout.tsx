@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ModalProvider } from '@/components/modal-provider';
 import { LeadCaptureModal } from '@/components/lead-capture-modal';
 import { CredibilityFooter } from '@/components/credibility-footer';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
   title: 'East India Automation',
@@ -32,6 +33,7 @@ export default function RootLayout({
           <ModalProvider>
             {children}
             <LeadCaptureModal />
+            <SpeedInsights />
           </ModalProvider>
           <Toaster />
           <CredibilityFooter />
