@@ -46,7 +46,6 @@ export async function POST(req: Request) {
 
   const genAI = new GoogleGenerativeAI(apiKey);
   
-  // Pass the system instruction directly to the model
   const model = genAI.getGenerativeModel({ 
     model: 'gemini-pro',
     systemInstruction: systemInstruction,
@@ -55,11 +54,14 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
     
-    // Format the history correctly for the AI SDK
-    const history = messages.map((m: Message) => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content }],
-    }));
+    // Format the history correctly for the AI SDK, excluding the initial assistant message if it's the first message.
+    const history = messages
+      .filter((m: Message) => m.role !== 'system') // Filter out any system messages
+      .filter((m: Message, i: number) => !(i === 0 && m.role === 'assistant')) // Remove initial assistant message
+      .map((m: Message) => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }],
+      }));
 
     // Remove the last message from history, as it's the current user prompt
     const currentUserPrompt = history.pop();
@@ -79,7 +81,6 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[EIA_CHAT_API_ERROR]', error);
     const errorMessage = error.message || 'An unknown error occurred.';
-    const errorDetails = error.stack || 'No stack trace available.';
     return new Response(`**Protocol Error:** A server-side error occurred.\n\n**Details:** ${errorMessage}`, { status: 500 });
   }
 }
