@@ -1,3 +1,5 @@
+'use server';
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleGenerativeAIStream, StreamingTextResponse, Message } from 'ai';
 
@@ -10,28 +12,39 @@ export async function POST(req: Request) {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
   
   try {
-    const { messages } = await req.json();
+    const { messages, systemInstruction } = await req.json();
+    
+    // Using gemini-pro as it's the stable model for this kind of task.
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-pro',
+      systemInstruction: {
+        role: 'model',
+        parts: [{ text: systemInstruction }],
+      },
+    });
 
     const stream = await model.generateContentStream({
-        contents: messages.map((m: Message) => ({
-            role: m.role === 'user' ? 'user' : 'model',
-            parts: [{ text: m.content }],
-        })),
+      contents: messages.map((m: Message) => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }],
+      })),
     });
 
     const aiStream = GoogleGenerativeAIStream(stream);
 
     return new StreamingTextResponse(aiStream);
+
   } catch (error: any) {
     console.error('[EIA_CHAT_API_ERROR]', error);
     const errorMessage = error.message || 'An unknown error occurred.';
-    // Ensure we send a plain text response for errors
-    return new Response(`**Protocol Error:** A server-side error occurred.\n\n**Details:** ${errorMessage}`, { 
+    // Return a structured JSON error for the client to handle
+    return new Response(JSON.stringify({ 
+      error: `**Protocol Error:** A server-side error occurred.\n\n**Details:** ${errorMessage}` 
+    }), {
       status: 500,
-      headers: { 'Content-Type': 'text/plain' }
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 }
