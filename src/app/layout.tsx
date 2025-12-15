@@ -6,6 +6,8 @@ import { ModalProvider } from '@/components/modal-provider';
 import { LeadCaptureModal } from '@/components/lead-capture-modal';
 import { CredibilityFooter } from '@/components/credibility-footer';
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { ScrollToTop } from '@/components/scroll-to-top';
+import { ChatWidget } from '@/components/chat/chat-widget';
 
 export const metadata: Metadata = {
   title: 'East India Automation',
@@ -37,6 +39,8 @@ export default function RootLayout({
           </ModalProvider>
           <Toaster />
           <CredibilityFooter />
+          <ScrollToTop />
+          <ChatWidget />
         </Providers>
       </body>
     </html>

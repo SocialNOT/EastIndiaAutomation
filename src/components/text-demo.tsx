@@ -16,7 +16,6 @@ export function TextDemo() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -77,8 +76,8 @@ export function TextDemo() {
   };
 
   return (
-    <div className="flex flex-col h-[60vh] min-h-[400px] max-h-[600px] bg-background/5 border border-primary/20 rounded-lg p-4 font-code shadow-[0_0_20px_hsl(var(--primary),0.2)]">
-      <ScrollArea className="flex-1 w-full mb-4 pr-4" ref={scrollAreaRef} viewportRef={viewportRef}>
+    <div className="flex flex-col h-full bg-background rounded-lg font-code">
+      <ScrollArea className="flex-1 w-full p-4" viewportRef={viewportRef}>
         <div className="flex flex-col gap-4">
           {messages.length === 0 && (
               <div className="flex items-start gap-3">
@@ -100,18 +99,20 @@ export function TextDemo() {
           ))}
         </div>
       </ScrollArea>
-      <form onSubmit={handleSubmit} className="relative">
-        <Input
-          value={input}
-          onChange={handleInputChange}
-          placeholder={isPending ? "Generating response..." : "Ask about our services... (English / বাংলা / हिंदी)"}
-          className="bg-background/50 border-primary/30 h-11 pr-12 text-sm"
-          disabled={isPending}
-        />
-        <Button type="submit" size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-9" disabled={isPending || !input.trim()}>
-          <CornerDownLeft className="h-4 w-4" />
-        </Button>
-      </form>
+      <div className="p-4 border-t">
+        <form onSubmit={handleSubmit} className="relative">
+          <Input
+            value={input}
+            onChange={handleInputChange}
+            placeholder={isPending ? "Generating response..." : "Ask about our services..."}
+            className="bg-background/50 border-primary/30 h-11 pr-12 text-sm"
+            disabled={isPending}
+          />
+          <Button type="submit" size="icon" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-9" disabled={isPending || !input.trim()}>
+            <CornerDownLeft className="h-4 w-4" />
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
