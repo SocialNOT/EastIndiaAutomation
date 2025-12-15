@@ -3,9 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { useVapi, type CallStatus } from "@/hooks/use-vapi";
 import { cn } from "@/lib/utils";
-import { Mic, MicOff, PhoneOff, CircleDotDashed } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Mic, MicOff, PhoneOff, CircleDotDashed, AlertTriangle } from "lucide-react";
+import { useEffect, useRef } from "react";
 import * as Tone from "tone";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 const WaveformVisualizer = ({ analyser, speaker }: { analyser: Tone.Analyser | null, speaker: 'user' | 'bot' | null }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,7 +64,7 @@ const WaveformVisualizer = ({ analyser, speaker }: { analyser: Tone.Analyser | n
 
 
 export function VoiceDemo() {
-  const { callStatus, isSpeechActive, speaker, start, stop, analyser } = useVapi();
+  const { callStatus, isSpeechActive, speaker, start, stop, analyser, error } = useVapi();
 
   const getButtonContent = (status: CallStatus) => {
     switch (status) {
@@ -95,6 +96,13 @@ export function VoiceDemo() {
             <span className="text-xl font-bold tracking-wider">CALL ENDED</span>
           </>
         );
+      case "error":
+        return (
+            <>
+                <AlertTriangle className="h-12 w-12" />
+                <span className="text-xl font-bold tracking-wider">ERROR</span>
+            </>
+        )
     }
   };
 
@@ -105,6 +113,21 @@ export function VoiceDemo() {
       start();
     }
   };
+  
+  if (error) {
+    return (
+        <div className="flex flex-col h-[60vh] items-center justify-center bg-black/50 border border-destructive/50 rounded-lg p-4 gap-4 text-center">
+            <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Voice Agent Error</AlertTitle>
+                <AlertDescription>
+                    {error}
+                </AlertDescription>
+            </Alert>
+        </div>
+    )
+  }
+
 
   return (
     <div className="flex flex-col h-[60vh] items-center justify-center bg-black/50 border border-cyan-400/20 rounded-lg p-4 gap-8">
@@ -118,10 +141,11 @@ export function VoiceDemo() {
             "disabled:pointer-events-none",
             callStatus === 'connecting' && 'animate-pulse border-cyan-400/80 bg-cyan-400/20 text-cyan-300',
             callStatus === 'active' && 'border-destructive/80 bg-destructive/20 text-destructive-foreground hover:bg-destructive/30',
-            callStatus === 'idle' && 'border-cyan-400 bg-cyan-400/20 text-cyan-300 hover:bg-cyan-400/30',
-            callStatus === 'ended' && 'border-muted-foreground bg-muted/20 text-muted-foreground'
+            call-status === 'idle' && 'border-cyan-400 bg-cyan-400/20 text-cyan-300 hover:bg-cyan-400/30',
+            callStatus === 'ended' && 'border-muted-foreground bg-muted/20 text-muted-foreground',
+            callStatus === 'error' && 'border-destructive/80 bg-destructive/20 text-destructive-foreground'
         )}
-        disabled={callStatus === "ended"}
+        disabled={callStatus === "ended" || callStatus === "error"}
       >
         {getButtonContent(callStatus)}
       </Button>

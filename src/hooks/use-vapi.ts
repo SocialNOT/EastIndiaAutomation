@@ -4,7 +4,7 @@ import type Vapi from "@vapi-ai/web";
 import { useState, useEffect, useCallback } from "react";
 import type { Analyser } from 'tone';
 
-export type CallStatus = "idle" | "connecting" | "active" | "ended";
+export type CallStatus = "idle" | "connecting" | "active" | "ended" | "error";
 
 export const useVapi = () => {
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
@@ -12,23 +12,23 @@ export const useVapi = () => {
   const [speaker, setSpeaker] = useState<'user' | 'bot' | null>(null);
   const [analyser, setAnalyser] = useState<Analyser | null>(null);
   const [vapiInstance, setVapiInstance] = useState<Vapi | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const initializeVapi = async () => {
       const VapiModule = (await import("@vapi-ai/web")).default;
       const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
       
-      if (publicKey && publicKey !== "your-vapi-public-key-here") {
+      if (publicKey && publicKey !== "YOUR_VAPI_PUBLIC_KEY_HERE") {
         setVapiInstance(new VapiModule(publicKey));
       } else {
-        console.warn("VAPI public key not found or is a placeholder. Voice demo will be disabled.");
-        setCallStatus("ended");
+        setError("VAPI public key is missing. Please add NEXT_PUBLIC_VAPI_PUBLIC_KEY to your .env.local file.");
+        setCallStatus("error");
       }
     };
     initializeVapi();
 
     return () => {
-      // Use a functional update to get the latest state of vapiInstance
       setVapiInstance(v => {
         v?.destroy();
         return null;
@@ -39,15 +39,15 @@ export const useVapi = () => {
 
   const start = useCallback(async () => {
     if (!vapiInstance) {
-        setCallStatus("ended");
-        console.error("Vapi is not initialized. Please check your VAPI_PUBLIC_KEY.");
+        setError("Vapi is not initialized.");
+        setCallStatus("error");
         return;
     };
     setCallStatus("connecting");
     const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
-    if (!assistantId || assistantId === "your-vapi-assistant-id-here") {
-        console.error("VAPI assistant ID not found or is a placeholder. Cannot start call.");
-        setCallStatus("ended");
+    if (!assistantId || assistantId === "YOUR_VAPI_ASSISTANT_ID_HERE") {
+        setError("VAPI assistant ID is missing. Please add NEXT_PUBLIC_VAPI_ASSISTANT_ID to your .env.local file.");
+        setCallStatus("error");
         return;
     }
 
@@ -73,7 +73,8 @@ export const useVapi = () => {
 
     } catch (e) {
         console.error("Error starting Vapi call or Tone.js:", e);
-        setCallStatus("ended");
+        setError("Failed to start audio session.");
+        setCallStatus("error");
     }
 
   }, [vapiInstance]);
@@ -102,8 +103,10 @@ export const useVapi = () => {
         setSpeaker(null);
     };
     const onError = (e: any) => {
+      const errorMessage = e?.message || "An unknown Vapi error occurred.";
+      setError(errorMessage);
       console.error(e);
-      setCallStatus("ended");
+      setCallStatus("error");
     };
 
     vapiInstance.on("call-start", onCallStart);
@@ -121,5 +124,5 @@ export const useVapi = () => {
     };
   }, [vapiInstance, analyser]);
 
-  return { callStatus, isSpeechActive, speaker, analyser, start, stop };
+  return { callStatus, isSpeechActive, speaker, analyser, error, start, stop };
 };

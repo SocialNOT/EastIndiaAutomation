@@ -60,7 +60,19 @@ export async function askWebsite({
 }: {
   question: string;
 }): Promise<ReadableStream<string>> {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+  const geminiApiKey = process.env.GEMINI_API_KEY;
+
+  if (!geminiApiKey || geminiApiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+    const stream = new ReadableStream<string>({
+      start(controller) {
+        controller.enqueue("Error: Gemini API key not found. Please add it to your .env.local file.");
+        controller.close();
+      },
+    });
+    return stream;
+  }
+
+  const genAI = new GoogleGenerativeAI(geminiApiKey);
   const model = genAI.getGenerativeModel({
     model: 'gemini-1.5-flash',
     systemInstruction,
