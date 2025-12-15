@@ -1,162 +1,73 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Square, LoaderCircle, AlertTriangle, ShieldAlert } from "lucide-react";
+import { Mic, LoaderCircle, Bot, User } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { textToSpeech, askWebsite } from "@/app/actions";
 
-type VoiceStatus = "idle" | "permission_denied" | "permission_pending" | "listening" | "processing" | "speaking" | "error";
+type DemoStatus = "idle" | "listening" | "processing" | "speaking" | "ended";
+
+const userQuery = "Tell me about your international human-parity voice AI solutions.";
+const agentResponse = "Our voice agents handle inbound calls from any country with ultra-low latency and accent-agnostic understanding, ensuring you never miss a global inquiry.";
 
 export function VoiceDemo() {
-  const [status, setStatus] = useState<VoiceStatus>("idle");
-  const [lastTranscript, setLastTranscript] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [status, setStatus] = useState<DemoStatus>("idle");
+  const [displayText, setDisplayText] = useState<string | null>(null);
+  const [displayRole, setDisplayRole] = useState<"user" | "bot" | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const initializeRecognition = useCallback(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setError("Speech recognition is not supported in this browser.");
-      setStatus("error");
-      return;
+  const cleanup = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
+  }, []);
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setLastTranscript(transcript);
-      handleUserSpeech(transcript);
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error", event.error);
-      let errorMessage = `Speech recognition error: ${event.error}.`;
-      if (event.error === 'not-allowed') {
-        errorMessage = "Microphone access was denied. Please enable it in your browser settings to use the voice channel.";
-        setStatus("permission_denied");
-      } else if (event.error === 'no-speech') {
-        errorMessage = "No speech was detected. Please try speaking again.";
-      }
-      setError(errorMessage);
-      setStatus("error");
-    };
+  const startDemo = () => {
+    if (status !== "idle" && status !== "ended") return;
     
-    recognition.onend = () => {
-      if (status === 'listening') {
-        setStatus("idle");
-      }
-    };
+    cleanup();
+    setStatus("listening");
+    setDisplayRole("user");
+    setDisplayText(userQuery);
 
-    recognitionRef.current = recognition;
-  }, [status]);
-  
-  useEffect(() => {
-    initializeRecognition();
-  }, [initializeRecognition]);
-
-  const handleUserSpeech = async (transcript: string) => {
+    timeoutRef.current = setTimeout(() => {
       setStatus("processing");
-      setError(null);
-      let fullTextResponse = "";
-
-      try {
-        const stream = await askWebsite({ question: transcript });
-        const reader = stream.getReader();
-        const decoder = new TextDecoder();
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          fullTextResponse += decoder.decode(value, { stream: true });
-        }
+      timeoutRef.current = setTimeout(() => {
+        setStatus("speaking");
+        setDisplayRole("bot");
+        setDisplayText(agentResponse);
         
-        if (fullTextResponse) {
-          const { audioBase64, error: ttsError } = await textToSpeech({ text: fullTextResponse });
-          if (ttsError || !audioBase64) {
-            throw new Error(ttsError || "Failed to generate audio.");
-          }
+        timeoutRef.current = setTimeout(() => {
+          setStatus("ended");
+        }, 8000); // Agent finishes "speaking"
 
-          const audioSrc = `data:audio/mp3;base64,${audioBase64}`;
-          const audio = new Audio(audioSrc);
-          audioRef.current = audio;
-
-          audio.onplay = () => setStatus("speaking");
-          audio.onended = () => setStatus("idle");
-          audio.onerror = () => {
-            setError("Failed to play audio response.");
-            setStatus("error");
-          };
-          audio.play();
-
-        } else {
-          throw new Error("Received an empty response from the AI.");
-        }
-
-      } catch (e: any) {
-        console.error("Voice demo error:", e);
-        setError(e.message || "An unexpected error occurred.");
-        setStatus("error");
-      }
+      }, 2000); // Processing time
+    }, 3000); // User finishes "speaking"
   };
 
-  const handleButtonClick = async () => {
-    setError(null);
-
-    if (status === 'speaking' && audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        setStatus('idle');
-        return;
-    }
-
-    if (status === 'listening' && recognitionRef.current) {
-        recognitionRef.current.stop();
-        setStatus('idle');
-        return;
-    }
-
-    // Check permissions first
-    try {
-      const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-      if (permissionStatus.state === 'denied') {
-        setError("Microphone access was denied. Please enable it in your browser settings to use the voice channel.");
-        setStatus('permission_denied');
-        return;
-      }
-    } catch (err) {
-      console.error("Could not check microphone permissions:", err);
-    }
-    
-    // If we are here, we either have permission or it's 'prompt'
-    if (recognitionRef.current) {
-      setStatus("listening");
-      recognitionRef.current.start();
+  useEffect(() => {
+    return cleanup;
+  }, [cleanup]);
+  
+  const handleButtonClick = () => {
+    if (status === "idle" || status === "ended") {
+      startDemo();
     } else {
-      setError("Speech recognition is not initialized.");
-      setStatus("error");
+      cleanup();
+      setStatus("idle");
+      setDisplayRole(null);
+      setDisplayText(null);
     }
   };
-
 
   const getButtonContent = () => {
     switch (status) {
       case "listening":
         return (
           <>
-            <Mic className="h-12 w-12" />
+            <Mic className="h-12 w-12 text-destructive animate-pulse" />
             <span className="text-xl font-bold tracking-wider">LISTENING...</span>
-          </>
-        );
-      case "permission_denied":
-        return (
-          <>
-            <MicOff className="h-12 w-12" />
-            <span className="text-xl font-bold tracking-wider">MIC DENIED</span>
           </>
         );
       case "processing":
@@ -169,15 +80,15 @@ export function VoiceDemo() {
       case "speaking":
         return (
           <>
-            <Square className="h-12 w-12" />
-            <span className="text-xl font-bold tracking-wider">STOP</span>
+            <Bot className="h-12 w-12 text-accent" />
+            <span className="text-xl font-bold tracking-wider">AGENT RESPONDING</span>
           </>
         );
-      case "error":
+      case "ended":
          return (
           <>
-            <AlertTriangle className="h-12 w-12" />
-            <span className="text-xl font-bold tracking-wider">ERROR</span>
+            <Mic className="h-12 w-12" />
+            <span className="text-xl font-bold tracking-wider">RESTART DEMO</span>
           </>
         );
       case "idle":
@@ -185,7 +96,7 @@ export function VoiceDemo() {
         return (
           <>
             <Mic className="h-12 w-12" />
-            <span className="text-xl font-bold tracking-wider">ACTIVATE MIC</span>
+            <span className="text-xl font-bold tracking-wider">ACTIVATE DEMO</span>
           </>
         );
     }
@@ -194,14 +105,11 @@ export function VoiceDemo() {
   const getButtonClassName = () => {
      switch (status) {
       case "listening":
-        return "border-destructive/80 bg-destructive/20 text-destructive-foreground animate-pulse";
-      case "processing":
-        return "border-accent/80 bg-accent/20 text-accent cursor-not-allowed";
-      case "speaking":
-        return "border-accent/80 bg-accent/20 text-accent-foreground";
-      case "error":
-      case "permission_denied":
         return "border-destructive/80 bg-destructive/20 text-destructive-foreground cursor-not-allowed";
+      case "processing":
+      case "speaking":
+        return "border-accent/80 bg-accent/20 text-accent cursor-not-allowed";
+      case "ended":
       case "idle":
       default:
         return "border-accent bg-accent/20 text-accent hover:bg-accent/30";
@@ -210,36 +118,38 @@ export function VoiceDemo() {
   
   const getHelperText = () => {
     switch (status) {
-        case 'listening': return 'Feel free to speak now.';
-        case 'speaking': return 'Agent is responding...';
-        case 'permission_denied': return 'Enable mic access in browser settings.';
-        case 'error': return 'An error occurred. Please try again.';
+        case 'listening': return 'Simulating user voice query...';
+        case 'speaking': return 'Simulating agent voice response...';
         case 'processing': return 'Thinking...';
-        default: return 'Click the button to start.';
+        case 'ended': return 'Demo complete. Click to restart.';
+        default: return 'Click the button to start the simulated demo.';
     }
   }
 
   return (
-    <div className="flex flex-col h-[60vh] items-center justify-center bg-black/5 dark:bg-black/50 border border-accent/20 rounded-lg p-4 gap-8">
-      <div className="h-12 text-center text-muted-foreground">
-        {error && <p className="text-destructive max-w-sm">{error}</p>}
-        {lastTranscript && !error && (
-          <>
-            <p className="text-xs">You said:</p>
-            <p className="font-code text-accent">&quot;{lastTranscript}&quot;</p>
-          </>
+    <div className="flex flex-col min-h-[50vh] items-center justify-center bg-black/5 dark:bg-black/50 border border-accent/20 rounded-lg p-4 gap-8">
+      <div className="h-24 text-center text-muted-foreground transition-opacity duration-500" style={{opacity: displayRole ? 1 : 0}}>
+        {displayRole && (
+          <div className="flex flex-col items-center gap-2 max-w-md">
+            {displayRole === 'user' ? 
+              <User className="h-6 w-6 text-primary" /> : 
+              <Bot className="h-6 w-6 text-accent" />
+            }
+            <p className={`font-code text-base ${displayRole === 'user' ? 'text-primary' : 'text-accent'}`}>
+              &quot;{displayText}&quot;
+            </p>
+          </div>
         )}
       </div>
 
       <Button
         onClick={handleButtonClick}
         className={`relative flex flex-col items-center justify-center w-64 h-64 rounded-full border-4 transition-all duration-300 ease-in-out font-code ${getButtonClassName()}`}
-        disabled={status === "processing" || status === "permission_denied"}
       >
         {getButtonContent()}
       </Button>
 
-      <p className="h-4 text-muted-foreground">
+      <p className="h-4 text-muted-foreground text-sm">
         {getHelperText()}
       </p>
     </div>
