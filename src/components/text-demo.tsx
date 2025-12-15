@@ -3,10 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-// import { streamFlow } from "@genkit-ai/next";
 import { Bot, User, CornerDownLeft } from "lucide-react";
-import { FormEvent, useEffect, useRef, useState } from "react";
-// import { askWebsite, WebsiteQAOutput } from "@/ai/flows/website-qa-flow";
+import { FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { askWebsite } from "@/app/actions";
 
 type Message = {
   role: "user" | "bot";
@@ -16,7 +15,7 @@ type Message = {
 export function TextDemo() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,48 +36,45 @@ export function TextDemo() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isPending) return;
 
     const userMessage: Message = { role: "user", message: input };
-    setMessages(prev => [...prev, userMessage, { role: 'bot', message: 'AI functionality is temporarily disabled.' }]);
+    setMessages(prev => [...prev, userMessage]);
+    const question = input;
     setInput("");
-    
-    // const userMessage: Message = { role: "user", message: input };
-    // setMessages(prev => [...prev, userMessage, { role: 'bot', message: '' }]);
-    // setInput("");
-    // setIsLoading(true);
 
-    // try {
-    //   const {stream, response} = streamFlow(askWebsite, { question: input });
-    //   for await (const chunk of stream) {
-    //     const output = chunk.output as WebsiteQAOutput | undefined;
-    //     if (output?.answer) {
-    //       setMessages(prev => {
-    //         const newMessages = [...prev];
-    //         const lastMessage = newMessages[newMessages.length - 1];
-    //         if (lastMessage.role === "bot") {
-    //           lastMessage.message = output.answer;
-    //         }
-    //         return newMessages;
-    //       });
-    //     }
-    //   }
-    //   await response;
-    // } catch (error) {
-    //   console.error("Error streaming from AI flow:", error);
-    //   setMessages(prev => {
-    //     const newMessages = [...prev];
-    //     const lastMessage = newMessages[newMessages.length - 1];
-    //     if (lastMessage.role === "bot") {
-    //       lastMessage.message = "An operational error occurred. Please verify your Gemini API key configuration and try again.";
-    //     }
-    //     return newMessages;
-    //   });
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    startTransition(async () => {
+      const botMessage: Message = { role: 'bot', message: '' };
+      setMessages(prev => [...prev, botMessage]);
+
+      try {
+        const stream = await askWebsite({ question });
+        let fullAnswer = "";
+        for await (const chunk of stream) {
+          fullAnswer += chunk;
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === "bot") {
+              lastMessage.message = fullAnswer;
+            }
+            return newMessages;
+          });
+        }
+      } catch (error) {
+        console.error("Error streaming from server action:", error);
+        setMessages(prev => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage.role === "bot") {
+            lastMessage.message = "An operational error occurred. Please verify your Gemini API key configuration and try again.";
+          }
+          return newMessages;
+        });
+      }
+    });
   };
-  
+
   return (
     <div className="flex flex-col h-[60vh] bg-black/80 border border-primary/20 rounded-lg p-4 font-code shadow-[0_0_20px_hsl(var(--primary),0.3)]">
       <ScrollArea className="flex-1 w-full mb-4 pr-4" ref={scrollAreaRef}>
@@ -88,7 +84,7 @@ export function TextDemo() {
               {m.role === 'bot' ? <Bot className="text-primary h-6 w-6" /> : <User className="text-accent h-6 w-6" />}
               <div className="flex flex-col">
                 <span className={`font-bold ${m.role === 'bot' ? 'text-primary' : 'text-accent'}`}>{m.role === 'bot' ? 'EIA Protocol Agent' : 'Operator'}</span>
-                <p className="text-muted-foreground whitespace-pre-wrap">{m.message}{i === messages.length - 1 && isLoading && m.role === 'bot' ? '...' : ''}</p>
+                <p className="text-muted-foreground whitespace-pre-wrap">{m.message}{i === messages.length - 1 && isPending && m.role === 'bot' ? '...' : ''}</p>
               </div>
             </div>
           ))}
@@ -107,11 +103,11 @@ export function TextDemo() {
         <Input
           value={input}
           onChange={handleInputChange}
-          placeholder={isLoading ? "Generating response..." : "Ask a question..."}
+          placeholder={isPending ? "Generating response..." : "Ask a question..."}
           className="bg-background/50 border-primary/30 h-12 pr-12 text-base"
-          disabled={isLoading}
+          disabled={isPending}
         />
-        <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-10" disabled={isLoading || !input.trim()}>
+        <Button type="submit" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-10" disabled={isPending || !input.trim()}>
           <CornerDownLeft className="h-5 w-5" />
         </Button>
       </form>
