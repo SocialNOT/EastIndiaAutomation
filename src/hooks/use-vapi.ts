@@ -16,44 +16,51 @@ export const useVapi = () => {
 
   useEffect(() => {
     const initializeVapi = async () => {
-      const VapiModule = (await import("@vapi-ai/web")).default;
-      const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
-      const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+      try {
+        const VapiModule = (await import("@vapi-ai/web")).default;
+        const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
+        const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
 
-      if (!publicKey || publicKey === "YOUR_VAPI_PUBLIC_KEY_HERE") {
-        setError("VAPI public key is not configured. Please add NEXT_PUBLIC_VAPI_PUBLIC_KEY to your environment file.");
+        if (!publicKey) {
+          setError("Vapi Error: `NEXT_PUBLIC_VAPI_PUBLIC_KEY` is not configured in the environment. Voice agent is disabled.");
+          setCallStatus("error");
+          return;
+        }
+         if (!assistantId) {
+          setError("Vapi Error: `NEXT_PUBLIC_VAPI_ASSISTANT_ID` is not configured. Voice agent is disabled.");
+          setCallStatus("error");
+          return;
+        }
+
+        const vapi = new VapiModule(publicKey);
+        setVapiInstance(vapi);
+
+        vapi.on("call-start", () => setCallStatus("active"));
+        vapi.on("call-end", () => {
+          setCallStatus("ended");
+          analyser?.dispose();
+          setAnalyser(null);
+        });
+        vapi.on("speech-start", (payload: any) => {
+            setIsSpeechActive(true);
+            setSpeaker(payload.role === 'assistant' ? 'bot' : 'user');
+        });
+        vapi.on("speech-end", () => {
+            setIsSpeechActive(false);
+            setSpeaker(null);
+        });
+        vapi.on("error", (e: any) => {
+          const errorMessage = e?.message || "An unknown Vapi error occurred.";
+          setError(errorMessage);
+          console.error("Vapi SDK Error:", e);
+          setCallStatus("error");
+        });
+
+      } catch (e: any) {
+        console.error("Failed to initialize Vapi:", e);
+        setError(`Initialization failed: ${e.message}`);
         setCallStatus("error");
-        return;
       }
-       if (!assistantId || assistantId === "YOUR_VAPI_ASSISTANT_ID_HERE") {
-        setError("VAPI assistant ID is not configured. Please add NEXT_PUBLIC_VAPI_ASSISTANT_ID to your environment file.");
-        setCallStatus("error");
-        return;
-      }
-
-      const vapi = new VapiModule(publicKey);
-      setVapiInstance(vapi);
-
-      vapi.on("call-start", () => setCallStatus("active"));
-      vapi.on("call-end", () => {
-        setCallStatus("ended");
-        analyser?.dispose();
-        setAnalyser(null);
-      });
-      vapi.on("speech-start", (payload: any) => {
-          setIsSpeechActive(true);
-          setSpeaker(payload.role === 'assistant' ? 'bot' : 'user');
-      });
-      vapi.on("speech-end", () => {
-          setIsSpeechActive(false);
-          setSpeaker(null);
-      });
-      vapi.on("error", (e: any) => {
-        const errorMessage = e?.message || "An unknown Vapi error occurred.";
-        setError(errorMessage);
-        console.error(e);
-        setCallStatus("error");
-      });
     };
 
     initializeVapi();
@@ -64,11 +71,16 @@ export const useVapi = () => {
         return null;
       });
     };
-  }, [analyser]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const start = useCallback(async () => {
-    if (!vapiInstance) return;
+    if (!vapiInstance) {
+        setError("Vapi is not initialized. Cannot start call.");
+        setCallStatus("error");
+        return;
+    }
     
     setCallStatus("connecting");
     const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
@@ -93,9 +105,9 @@ export const useVapi = () => {
 
         setAnalyser(newAnalyser);
 
-    } catch (e) {
+    } catch (e: any) {
         console.error("Error starting Vapi call or Tone.js:", e);
-        setError("Failed to start audio session. Please check microphone permissions.");
+        setError(`Failed to start audio session: ${e.message}. Please check microphone permissions.`);
         setCallStatus("error");
     }
 

@@ -62,33 +62,44 @@ export async function askWebsite({
 }): Promise<ReadableStream<string>> {
   const geminiApiKey = process.env.GEMINI_API_KEY;
 
-  if (!geminiApiKey || geminiApiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+  if (!geminiApiKey) {
     const stream = new ReadableStream<string>({
       start(controller) {
-        controller.enqueue("Error: Gemini API key not found. Please add it to your .env.local file.");
+        controller.enqueue("Error: `GEMINI_API_KEY` is not configured. The chatbot is currently non-operational.");
         controller.close();
       },
     });
     return stream;
   }
 
-  const genAI = new GoogleGenerativeAI(geminiApiKey);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    systemInstruction,
-  });
+  try {
+    const genAI = new GoogleGenerativeAI(geminiApiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      systemInstruction,
+    });
 
-  const result = await model.generateContentStream(question);
+    const result = await model.generateContentStream(question);
 
-  const stream = new ReadableStream<string>({
-    async start(controller) {
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        controller.enqueue(chunkText);
-      }
-      controller.close();
-    },
-  });
+    const stream = new ReadableStream<string>({
+      async start(controller) {
+        for await (const chunk of result.stream) {
+          const chunkText = chunk.text();
+          controller.enqueue(chunkText);
+        }
+        controller.close();
+      },
+    });
+    return stream;
 
-  return stream;
+  } catch(e: any) {
+     const stream = new ReadableStream<string>({
+      start(controller) {
+        console.error("Gemini API Error:", e);
+        controller.enqueue(`An operational error occurred with the AI service: ${e.message}`);
+        controller.close();
+      },
+    });
+    return stream;
+  }
 }
