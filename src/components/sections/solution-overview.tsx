@@ -36,7 +36,7 @@ const pillarsData: PillarProps[] = [
 
 function PillarCard({ icon: Icon, title, description }: PillarProps) {
   return (
-    <div className="p-6 border border-primary/20 bg-card/30 transition-all duration-300 hover:border-primary/50 hover:bg-card/50 hover:shadow-[0_0_20px_hsl(var(--primary),0.2)] rounded-lg flex flex-col gap-4 text-left h-full">
+    <div className="p-6 border bg-card/30 transition-all duration-300 rounded-lg flex flex-col gap-4 text-left h-full animate-pulse-glow hover:animate-none hover:border-primary">
         <Icon className="h-10 w-10 text-primary" />
         <h3 className="font-headline text-xl md:text-2xl !leading-tight">{title}</h3>
         <p className="text-muted-foreground flex-grow text-base">{description}</p>
@@ -58,7 +58,7 @@ export function SolutionOverviewSection() {
                 Built on a foundation of registered Indian engineering expertise and scalable cloud architecture.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8">
                 {pillarsData.map((pillar) => (
                     <div key={pillar.title} ref={register} className="h-full">
                       <PillarCard {...pillar} />

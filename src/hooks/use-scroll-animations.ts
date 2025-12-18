@@ -44,7 +44,7 @@ export const useScrollAnimations = (
                             opacity: 1,
                             y: 0,
                             duration: 0.8,
-                            ease: 'power3.out',
+                            ease: 'easeInOut',
                             delay: index * stagger,
                         });
                         if (index === 0 && onEnter) onEnter();
@@ -54,7 +54,7 @@ export const useScrollAnimations = (
                             opacity: 0,
                             y: 30,
                             duration: 0.5,
-                            ease: 'power3.in',
+                            ease: 'easeInOut',
                         });
                          if (index === 0 && onLeaveBack) onLeaveBack();
                     },

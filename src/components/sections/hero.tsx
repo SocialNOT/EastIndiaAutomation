@@ -15,19 +15,19 @@ export function HeroSection() {
     const ctx = gsap.context(() => {
       gsap.fromTo("[data-animate='hero-title']", 
         { opacity: 0, y: 20 }, 
-        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: 0.2 }
+        { opacity: 1, y: 0, duration: 0.8, ease: "easeInOut", delay: 0.2 }
       );
       gsap.fromTo("[data-animate='hero-subtitle']", 
         { opacity: 0, y: 20 }, 
-        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: 0.4 }
+        { opacity: 1, y: 0, duration: 0.8, ease: "easeInOut", delay: 0.4 }
       );
       gsap.fromTo("[data-animate='hero-credibility']", 
         { opacity: 0, y: 20 }, 
-        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: 0.6, stagger: 0.1 }
+        { opacity: 1, y: 0, duration: 0.8, ease: "easeInOut", delay: 0.6, stagger: 0.1 }
       );
       gsap.fromTo("[data-animate='hero-cta']", 
         { opacity: 0, y: 20 }, 
-        { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: 0.8 }
+        { opacity: 1, y: 0, duration: 0.8, ease: "easeInOut", delay: 0.8 }
       );
     }, sectionRef);
 
@@ -63,7 +63,7 @@ export function HeroSection() {
         <div data-animate="hero-cta" className="flex flex-col sm:flex-row gap-4 mt-6 w-full max-w-md">
           <Button 
             size="lg" 
-            className="font-bold tracking-wider text-base md:text-lg h-14 flex-1 transition-all duration-300 hover:shadow-[0_0_25px_hsl(var(--primary)/0.8)] active:scale-95"
+            className="font-bold tracking-wider text-base md:text-lg h-14 flex-1 transition-all duration-300 animate-pulse-glow active:scale-95"
             onClick={() => setOpen(true)}
           >
             DEPLOY GLOBAL INTELLIGENCE
